@@ -4,6 +4,10 @@ name: Play Store release AAB
 # manual so listing, declarations and staged rollout can be reviewed first.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.release-trigger/build74.txt'
 
 permissions:
   contents: read
