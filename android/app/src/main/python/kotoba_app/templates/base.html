@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto" data-ui-shell="immersive" data-glass="on">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F8F5EF">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kotoba">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+<title>{% block title %}Kotoba — Learn Japanese{% endblock %}</title>
+<script src="{{ url_for('static', filename='js/theme-catalog.js') }}"></script>
+<script>
+/* Restore the wallpaper *before the first paint* on every route.
+   A small local JPEG is a stable fallback until IndexedDB returns the
+   user's original image or animated GIF. No network request is needed. */
+(function () {
+  var root = document.documentElement;
+  try {
+    var dim = localStorage.getItem('kotoba:wallpaper:dim');
+    var percent = dim !== null ? Math.max(15, Math.min(90, Number(dim) || 60)) : 60;
+    root.style.setProperty('--wallpaper-scrim', percent / 100);
+    root.style.setProperty('--wallpaper-boot-dim', percent + '%');
+  } catch (_) { /* storage unavailable; use theme defaults */ }
+  try {
+    if (localStorage.getItem('kotoba:liquid-glass') === 'off') root.setAttribute('data-glass', 'off');
+    var preview = localStorage.getItem('kotoba:wallpaper:preview');
+    if (!preview || !/^data:image\/(jpeg|png|webp);base64,/i.test(preview)) return;
+    root.style.setProperty('--wallpaper-boot-image', 'url("' + preview + '")');
+    root.setAttribute('data-wallpaper-preview', 'ready');
+    // Use the same crop as the full image so navigating does not jump
+    // from center/cover to the saved zoom and position.
+    var dims = JSON.parse(localStorage.getItem('kotoba:wallpaper:preview:dims') || 'null');
+    var frame = JSON.parse(localStorage.getItem('kotoba:wallpaper:frame') || 'null') || {};
+    if (!dims || !(dims.width > 0 && dims.height > 0)) return;
+    var w = innerWidth || 390, h = innerHeight || 800;
+    var zoom = Math.max(1, Math.min(3.5, Number(frame.zoom) || 1));
+    var scale = Math.max(w / dims.width, h / dims.height) * zoom;
+    var rw = dims.width * scale, rh = dims.height * scale;
+    var x = Math.max(0, Math.min(1, Number.isFinite(Number(frame.x)) ? Number(frame.x) : .5));
+    var y = Math.max(0, Math.min(1, Number.isFinite(Number(frame.y)) ? Number(frame.y) : .5));
+    root.style.setProperty('--wallpaper-boot-size', rw + 'px ' + rh + 'px');
+    root.style.setProperty('--wallpaper-boot-position', (-Math.max(0,rw-w)*x) + 'px ' + (-Math.max(0,rh-h)*y) + 'px');
+  } catch (_) { /* corrupt preview should never prevent page rendering */ }
+})();
+</script>
+<!-- Offline release uses device fonts; no external font requests. -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ui-shell.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/journey.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/liquid-glass.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+<script>
+// Early class lets the decorative motif disappear in the first frame.
+if (document.documentElement.hasAttribute('data-wallpaper-preview')) {
+  document.body.classList.add('has-kotoba-wallpaper');
+}
+</script>
+
+{% if request.endpoint == 'index' %}
+<div class="kotoba-intro kotoba-golden-thread" id="kotoba-intro" aria-label="Kotoba Golden Thread opening animation">
+  <button type="button" class="kotoba-intro-skip" id="kotoba-intro-skip" aria-label="Skip opening animation">Skip</button>
+  <div class="kotoba-intro-scene">
+    <div class="kotoba-intro-logo">
+      <img class="intro-mark" src="{{ url_for('static', filename='icons/kotoba-logo-circle.png') }}" width="86" height="86" alt="" decoding="sync">
+      <p lang="ja">ことば</p><h1>Kotoba</h1>
+      <span class="kotoba-thread-divider" aria-hidden="true"></span>
+      <p class="kotoba-intro-tagline">Your Japanese journey starts here.</p>
+    </div>
+    <div class="kotoba-gold-wave" aria-hidden="true">
+      <svg viewBox="0 0 800 280" preserveAspectRatio="none" focusable="false">
+        <path class="kotoba-thread-glow" d="M-20 185 C116 44 231 246 386 151 S666 49 820 119" />
+        <path class="kotoba-thread-line" d="M-20 185 C116 44 231 246 386 151 S666 49 820 119" />
+      </svg>
+      <span class="kotoba-thread-spark spark-a"></span>
+      <span class="kotoba-thread-spark spark-b"></span>
+      <span class="kotoba-thread-spark spark-c"></span>
+    </div>
+    <div class="kotoba-intro-progress" aria-hidden="true"><span></span></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="seal-bg" aria-hidden="true"></div>
+
+<header class="site-header">
+  <a class="brand" href="{{ url_for('index') }}">
+    <img class="brand-mark" src="{{ url_for('static', filename='icons/icon-192.png') }}" width="34" height="34" alt="">
+    <span class="brand-text">
+      <span class="brand-jp">ことば</span>
+      <span class="brand-en">Kotoba</span>
+    </span>
+  </a>
+
+  <form class="header-search" action="{{ url_for('search_page') }}" method="get">
+    <input
+      type="text"
+      name="q"
+      aria-label="Search Japanese or English words"
+      placeholder="Search Japanese or English…"
+      value="{{ request.args.get('q', '') }}"
+      autocomplete="off"
+    >
+    <button type="button" class="voice-search-global-btn voice-in-search" id="voice-search-global" data-voice-global aria-label="Voice search" title="Voice search"><span data-theme-icon="voice" aria-hidden="true">🎙</span></button>
+    <button type="submit" aria-label="Search"><span data-theme-icon="search" aria-hidden="true">検</span></button>
+  </form>
+
+  <a href="{{ url_for('streak_page') }}" class="streak-badge" id="streak-badge" title="Dashboard — your streak and progress">
+    <span id="streak-flame" data-theme-icon="progress" aria-hidden="true">🔥</span>
+    <span id="streak-count">–</span>
+  </a>
+  <a href="{{ url_for('smart_review_page') }}" class="review-due-badge" id="review-due-badge" title="Daily Review"><span data-theme-icon="review" aria-hidden="true">↻</span> <span id="review-due-count">–</span></a>
+
+  <button type="button" class="voice-search-global-btn voice-outside-search" data-voice-global aria-label="Voice search" title="Voice search anywhere"><span data-theme-icon="voice" aria-hidden="true">🎙</span></button>
+
+  <div class="settings-wrap">
+    <button type="button" class="settings-btn" id="settings-btn"
+            aria-expanded="false" aria-controls="settings-panel"
+            aria-label="Settings" title="Settings"><span data-theme-icon="settings" aria-hidden="true">⚙</span></button>
+
+    <div class="settings-panel" id="settings-panel" tabindex="0" aria-label="App settings" hidden>
+      <h4>色 · Appearance</h4>
+      <div class="theme-options" id="theme-options"></div>
+      <div class="settings-row"><span>Follow device appearance</span><button type="button" class="switch" id="theme-system-switch" role="switch" aria-checked="true" aria-label="Follow device appearance"></button></div>
+      <p class="settings-theme-hint">Use Light or Dark, or follow your device. Liquid Glass picks up colors from your wallpaper. Your saved study progress is unaffected.</p>
+      <h4>画面 · Display</h4>
+      <div class="settings-row" id="status-bar-row" hidden><span>Hide status bar</span><button type="button" class="switch" id="status-bar-switch" role="switch" aria-checked="false" aria-label="Hide status bar"></button></div>
+      <small id="status-bar-hint" hidden>Swipe down from the top to briefly show phone status icons.</small>
+
+      <div class="settings-row" id="liquid-glass-row">
+        <span>Liquid Glass <small>Glass panels, controls and logo across the whole app</small></span>
+        <button type="button" class="switch" role="switch" id="liquid-glass-switch" aria-label="Liquid Glass" aria-checked="true" aria-describedby="liquid-glass-hint"></button>
+      </div>
+      <small id="liquid-glass-hint" role="status">On · Glass finish throughout the app</small>
+      <h4>音 · Feedback</h4>
+      <div class="settings-row">
+        <span>Sound effects</span>
+        <button type="button" class="switch" id="sound-switch" role="switch"
+                aria-checked="true" aria-label="Sound effects"></button>
+      </div>
+      <div class="settings-row">
+        <span>Vibration</span>
+        <button type="button" class="switch" id="haptics-switch" role="switch"
+                aria-checked="true" aria-label="Vibration"></button>
+      </div>
+
+      <h4>☀ · Daily study</h4>
+      <div class="settings-row settings-daily-review-row">
+        <span class="settings-daily-review-copy">
+          <strong>Daily Review</strong>
+          <small id="settings-review-due">Checking due items…</small>
+        </span>
+        <a class="settings-action-link" href="{{ url_for('smart_review_page') }}">Open</a>
+      </div>
+      <div class="settings-daily-goal">
+        <span class="settings-goal-label">Daily goal</span>
+        <div class="settings-goal-chips" id="settings-goal-chips" role="group" aria-label="Daily study goal">
+          <button type="button" data-goal="5">5m</button>
+          <button type="button" data-goal="10">10m</button>
+          <button type="button" data-goal="15">15m</button>
+          <button type="button" data-goal="20">20m</button>
+          <button type="button" data-goal="30">30m</button>
+        </div>
+        <small class="settings-goal-hint">You can change this any time.</small>
+      </div>
+
+      <h4>🔔 · Daily reminder</h4>
+      <div class="settings-row">
+        <span>Remind me to practice</span>
+        <button type="button" class="switch" id="reminder-switch" role="switch"
+                aria-checked="false" aria-label="Daily reminder"></button>
+      </div>
+      <div class="settings-row reminder-time-row" id="reminder-time-row" hidden>
+        <label for="reminder-time">Remind me at</label>
+        <input type="time" id="reminder-time" value="19:00">
+      </div>
+      <p class="reminder-hint" id="reminder-hint" hidden>
+        Reminders only fire from the installed app, not a browser tab.
+      </p>
+
+      <div class="settings-links">
+        <a href="/kanji-notification">Kanji notification &amp; lock screen</a>
+        <a href="/sync">Internet &amp; cloud sync</a>
+        <a href="{{ url_for('placement_page') }}">Placement test</a>
+        <a href="{{ url_for('favorites_page') }}">Favorites &amp; lists</a>
+        <a href="{{ url_for('backup_page') }}">Backup &amp; restore</a>
+        <a href="/data-controls">Data controls</a>
+        <a href="/privacy">Privacy</a>
+        <a href="{{ url_for('about_page') }}">About Kotoba</a>
+        <a href="{{ url_for('feedback_page') }}">Send feedback</a>
+      </div>
+    </div>
+  </div>
+
+  <nav class="site-nav" id="site-nav" aria-label="Sections">
+    <a href="{{ url_for('roadmap_page') }}" class="{{ 'active' if request.endpoint in ['roadmap_page','roadmap_chapter'] }}">Learn</a>
+    <a href="{{ url_for('smart_review_page') }}" class="{{ 'active' if request.endpoint in ['smart_review_page','mistakes_page','favorites_page','flashcards'] }}">Review</a>
+    <a href="{{ url_for('explore_page') }}" class="{{ 'active' if request.endpoint in ['explore_page','hiragana','katakana','kanji_list','kanji_detail','radicals_page','radical_detail','verbs_list','everyday_words','stories_list','story_detail','conversations_list','conversation_detail','write_page','grammar_page','grammar_detail','speaking_page','games_page','japan_explorer_page'] }}">Explore</a>
+    <a href="{{ url_for('jlpt_index') }}" class="{{ 'active' if request.endpoint in ['jlpt_index','jlpt_level','jlpt_practice','jlpt_exam_practice'] }}">JLPT</a>
+    <a href="{{ url_for('streak_page') }}" class="{{ 'active' if request.endpoint == 'streak_page' }}">Progress</a>
+    <a href="{{ url_for('practice_start') }}" class="nav-cta {{ 'active' if request.endpoint in ['practice_start','kanji_practice'] }}">Practice</a>
+  </nav>
+</header>
+
+<div class="voice-search-overlay" id="voice-search-overlay" hidden>
+  <section class="voice-search-dialog" role="dialog" aria-modal="true" aria-labelledby="voice-search-title">
+    <button type="button" class="voice-search-close" id="voice-search-close" aria-label="Close voice search">×</button>
+    <div class="voice-search-pulse" aria-hidden="true"><span>🎙</span></div>
+    <p class="hero-eyebrow">声で検索 — voice search</p>
+    <h2 id="voice-search-title">Say what you want to find</h2>
+    <p class="voice-search-status" id="voice-search-status" role="status" aria-live="polite">Listening…</p>
+    <label class="voice-transcript-label" for="voice-search-transcript">Words to search · edit if needed</label>
+    <textarea class="voice-search-transcript" id="voice-search-transcript" rows="3" placeholder="Speak a word or a full sentence…"></textarea>
+    <div class="voice-search-alternatives" id="voice-search-alternatives" aria-label="Other words heard" hidden></div>
+    <div class="voice-search-languages" role="group" aria-label="Recognition language">
+      <button type="button" data-voice-lang="ja-JP">日本語</button>
+      <button type="button" data-voice-lang="en-US">English</button>
+      <button type="button" data-voice-lang="auto">Device language</button>
+    </div>
+    <div class="voice-search-actions">
+      <button type="button" class="btn-ghost" id="voice-search-stop" hidden>Done speaking</button>
+      <button type="button" class="btn-ghost voice-search-retry" id="voice-search-retry" hidden>Try again</button>
+      <button type="button" class="btn-primary" id="voice-search-use" disabled>Search</button>
+    </div>
+    <a class="voice-search-everywhere" id="voice-search-everywhere" href="/search" hidden>Search all of Kotoba instead</a>
+    <small>Choose the language you will speak. Review the complete phrase, then tap Search. Voice recognition uses your device's speech service.</small>
+  </section>
+</div>
+
+<main class="site-main">
+  {% if request.endpoint != 'index' %}<button type="button" class="btn-ghost page-back" id="page-back" aria-label="Go back">← Back</button>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <p>
+    <a href="/privacy">Privacy</a> · <a href="/data-controls">Your data</a> ·
+    <a href="{{ url_for('about_page') }}">About</a> ·
+    <a href="{{ url_for('feedback_page') }}">Feedback</a>
+  </p>
+  <p>Japanese study across N5–N1 · vocabulary, grammar, stories and practice.</p>
+  <p class="site-version">Kotoba v{{ app_version }}</p>
+</footer>
+
+{% if request.endpoint == 'index' %}<script defer src="{{ url_for('static', filename='js/intro.js') }}"></script>{% endif %}
+<script defer src="{{ url_for('static', filename='js/search-match.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/search-suggestions.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/voice-search.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/learner.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/cloud-sync.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/speech.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/sfx.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/scroll-lock.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/theme-icons.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/reminder.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/reaction.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/ripple.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/liquid-glass.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/navigation.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/ui-shell.js') }}"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  if (window.KotobaStartupNative) {
+    // Android already serves its bundled files offline. Avoid a duplicate
+    // precache download and retire older native-session workers.
+    if (typeof navigator.serviceWorker.getRegistrations === "function") navigator.serviceWorker.getRegistrations().then(items => Promise.all(items.map(item => item.unregister()))).catch(() => {});
+    if (window.caches) caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('kotoba-shell-')).map(key => caches.delete(key)))).catch(() => {});
+  } else {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+  }
+}
+</script>
+<script>
+fetch('/api/learner/summary').then(r=>r.json()).then(d=>{const due=Number(d.due||0);const e=document.getElementById('review-due-count');if(e)e.textContent=due;const s=document.getElementById('settings-review-due');if(s)s.textContent=due+' due today';}).catch(()=>{});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

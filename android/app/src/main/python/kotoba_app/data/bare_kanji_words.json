@@ -1,0 +1,982 @@
+{
+ "不": {
+  "reading": "ふ",
+  "romaji": "fu"
+ },
+ "世": {
+  "reading": "よ",
+  "romaji": "yo"
+ },
+ "両": {
+  "reading": "りょう",
+  "romaji": "ryō"
+ },
+ "主": {
+  "meaning": "master; main",
+  "reading": "しゅ",
+  "romaji": "shu"
+ },
+ "乗": {
+  "reading": "のる",
+  "romaji": "noru"
+ },
+ "京": {
+  "reading": "きょう",
+  "romaji": "kyō"
+ },
+ "仕": {
+  "reading": "し",
+  "romaji": "shi"
+ },
+ "以": {
+  "reading": "い",
+  "romaji": "i"
+ },
+ "休": {
+  "reading": "やすむ",
+  "romaji": "yasumu"
+ },
+ "伝": {
+  "reading": "つたえる",
+  "romaji": "tsutaeru"
+ },
+ "低": {
+  "reading": "ひくい",
+  "romaji": "hikui"
+ },
+ "住": {
+  "reading": "すむ",
+  "romaji": "sumu"
+ },
+ "作": {
+  "reading": "つくる",
+  "romaji": "tsukuru"
+ },
+ "使": {
+  "meaning": "to use; messenger",
+  "reading": "つかう",
+  "romaji": "tsukau"
+ },
+ "係": {
+  "meaning": "person in charge",
+  "reading": "かかり",
+  "romaji": "kakari"
+ },
+ "信": {
+  "reading": "しん",
+  "romaji": "shin"
+ },
+ "働": {
+  "reading": "はたらく",
+  "romaji": "hataraku"
+ },
+ "入": {
+  "reading": "はいる",
+  "romaji": "hairu"
+ },
+ "全": {
+  "reading": "ぜん",
+  "romaji": "zen"
+ },
+ "公": {
+  "reading": "こう",
+  "romaji": "kō"
+ },
+ "写": {
+  "reading": "うつす",
+  "romaji": "utsusu"
+ },
+ "冷": {
+  "reading": "つめたい",
+  "romaji": "tsumetai"
+ },
+ "出": {
+  "reading": "でる",
+  "romaji": "deru"
+ },
+ "切": {
+  "reading": "きる",
+  "romaji": "kiru"
+ },
+ "初": {
+  "reading": "はじめ",
+  "romaji": "hajime"
+ },
+ "利": {
+  "reading": "り",
+  "romaji": "ri"
+ },
+ "制": {
+  "reading": "せい",
+  "romaji": "sei"
+ },
+ "券": {
+  "reading": "けん",
+  "romaji": "ken"
+ },
+ "勉": {
+  "meaning": "endeavor; study",
+  "reading": "べん",
+  "romaji": "ben"
+ },
+ "動": {
+  "reading": "うごく",
+  "romaji": "ugoku"
+ },
+ "化": {
+  "reading": "か",
+  "romaji": "ka"
+ },
+ "区": {
+  "reading": "く",
+  "romaji": "ku"
+ },
+ "医": {
+  "reading": "い",
+  "romaji": "i"
+ },
+ "午": {
+  "reading": "ご",
+  "romaji": "go"
+ },
+ "半": {
+  "reading": "はん",
+  "romaji": "han"
+ },
+ "卒": {
+  "reading": "そつ",
+  "romaji": "sotsu"
+ },
+ "単": {
+  "reading": "たん",
+  "romaji": "tan"
+ },
+ "去": {
+  "reading": "きょ",
+  "romaji": "kyo"
+ },
+ "友": {
+  "reading": "とも",
+  "romaji": "tomo"
+ },
+ "反": {
+  "reading": "はん",
+  "romaji": "han"
+ },
+ "取": {
+  "reading": "とる",
+  "romaji": "toru"
+ },
+ "受": {
+  "reading": "うける",
+  "romaji": "ukeru"
+ },
+ "古": {
+  "reading": "ふるい",
+  "romaji": "furui"
+ },
+ "台": {
+  "meaning": "counter for machines; stand",
+  "reading": "だい",
+  "romaji": "dai"
+ },
+ "号": {
+  "reading": "ごう",
+  "romaji": "gō"
+ },
+ "品": {
+  "reading": "ひん",
+  "romaji": "hin"
+ },
+ "員": {
+  "reading": "いん",
+  "romaji": "in"
+ },
+ "商": {
+  "reading": "しょう",
+  "romaji": "shō"
+ },
+ "問": {
+  "reading": "とい",
+  "romaji": "toi"
+ },
+ "回": {
+  "meaning": "times; to turn",
+  "reading": "かい",
+  "romaji": "kai"
+ },
+ "困": {
+  "reading": "こまる",
+  "romaji": "komaru"
+ },
+ "園": {
+  "reading": "えん",
+  "romaji": "en"
+ },
+ "売": {
+  "reading": "うる",
+  "romaji": "uru"
+ },
+ "夕": {
+  "reading": "ゆう",
+  "romaji": "yū"
+ },
+ "多": {
+  "reading": "おおい",
+  "romaji": "ōi"
+ },
+ "大": {
+  "reading": "おおきい",
+  "romaji": "ōkii"
+ },
+ "天": {
+  "reading": "てん",
+  "romaji": "ten"
+ },
+ "太": {
+  "reading": "ふとい",
+  "romaji": "futoi"
+ },
+ "失": {
+  "reading": "しつ",
+  "romaji": "shitsu"
+ },
+ "好": {
+  "meaning": "to like",
+  "reading": "すき",
+  "romaji": "suki"
+ },
+ "始": {
+  "reading": "はじめる",
+  "romaji": "hajimeru"
+ },
+ "婚": {
+  "reading": "こん",
+  "romaji": "kon"
+ },
+ "婦": {
+  "reading": "ふ",
+  "romaji": "fu"
+ },
+ "学": {
+  "reading": "まなぶ",
+  "romaji": "manabu"
+ },
+ "安": {
+  "reading": "やすい",
+  "romaji": "yasui"
+ },
+ "室": {
+  "reading": "しつ",
+  "romaji": "shitsu"
+ },
+ "寒": {
+  "reading": "さむい",
+  "romaji": "samui"
+ },
+ "寝": {
+  "reading": "ねる",
+  "romaji": "neru"
+ },
+ "対": {
+  "reading": "たい",
+  "romaji": "tai"
+ },
+ "専": {
+  "reading": "せん",
+  "romaji": "sen"
+ },
+ "小": {
+  "reading": "ちいさい",
+  "romaji": "chiisai"
+ },
+ "少": {
+  "reading": "すくない",
+  "romaji": "sukunai"
+ },
+ "局": {
+  "meaning": "bureau; office",
+  "reading": "きょく",
+  "romaji": "kyoku"
+ },
+ "屋": {
+  "reading": "や",
+  "romaji": "ya"
+ },
+ "州": {
+  "reading": "しゅう",
+  "romaji": "shū"
+ },
+ "工": {
+  "reading": "こう",
+  "romaji": "kō"
+ },
+ "帰": {
+  "reading": "かえる",
+  "romaji": "kaeru"
+ },
+ "平": {
+  "reading": "へい",
+  "romaji": "hei"
+ },
+ "広": {
+  "reading": "ひろい",
+  "romaji": "hiroi"
+ },
+ "度": {
+  "reading": "ど",
+  "romaji": "do"
+ },
+ "式": {
+  "reading": "しき",
+  "romaji": "shiki"
+ },
+ "引": {
+  "reading": "ひく",
+  "romaji": "hiku"
+ },
+ "強": {
+  "reading": "つよい",
+  "romaji": "tsuyoi"
+ },
+ "待": {
+  "reading": "まつ",
+  "romaji": "matsu"
+ },
+ "必": {
+  "reading": "かならず",
+  "romaji": "kanarazu"
+ },
+ "忘": {
+  "reading": "わすれる",
+  "romaji": "wasureru"
+ },
+ "忙": {
+  "reading": "いそがしい",
+  "romaji": "isogashii"
+ },
+ "思": {
+  "reading": "おもう",
+  "romaji": "omō"
+ },
+ "悪": {
+  "reading": "わるい",
+  "romaji": "warui"
+ },
+ "意": {
+  "reading": "い",
+  "romaji": "i"
+ },
+ "成": {
+  "reading": "せい",
+  "romaji": "sei"
+ },
+ "打": {
+  "reading": "うつ",
+  "romaji": "utsu"
+ },
+ "払": {
+  "reading": "はらう",
+  "romaji": "harau"
+ },
+ "持": {
+  "reading": "もつ",
+  "romaji": "motsu"
+ },
+ "授": {
+  "reading": "じゅ",
+  "romaji": "ju"
+ },
+ "接": {
+  "reading": "せつ",
+  "romaji": "setsu"
+ },
+ "教": {
+  "reading": "おしえる",
+  "romaji": "oshieru"
+ },
+ "文": {
+  "reading": "ぶん",
+  "romaji": "bun"
+ },
+ "料": {
+  "reading": "りょう",
+  "romaji": "ryō"
+ },
+ "新": {
+  "reading": "あたらしい",
+  "romaji": "atarashii"
+ },
+ "族": {
+  "reading": "ぞく",
+  "romaji": "zoku"
+ },
+ "早": {
+  "reading": "はやい",
+  "romaji": "hayai"
+ },
+ "明": {
+  "reading": "あかるい",
+  "romaji": "akarui"
+ },
+ "昨": {
+  "reading": "さく",
+  "romaji": "saku"
+ },
+ "晴": {
+  "reading": "はれ",
+  "romaji": "hare"
+ },
+ "暑": {
+  "reading": "あつい",
+  "romaji": "atsui"
+ },
+ "暗": {
+  "reading": "くらい",
+  "romaji": "kurai"
+ },
+ "曜": {
+  "reading": "よう",
+  "romaji": "yō"
+ },
+ "書": {
+  "reading": "かく",
+  "romaji": "kaku"
+ },
+ "最": {
+  "reading": "さい",
+  "romaji": "sai"
+ },
+ "有": {
+  "reading": "ある",
+  "romaji": "aru"
+ },
+ "期": {
+  "reading": "き",
+  "romaji": "ki"
+ },
+ "未": {
+  "reading": "み",
+  "romaji": "mi"
+ },
+ "末": {
+  "reading": "まつ",
+  "romaji": "matsu"
+ },
+ "来": {
+  "reading": "くる",
+  "romaji": "kuru"
+ },
+ "校": {
+  "reading": "こう",
+  "romaji": "kō"
+ },
+ "様": {
+  "reading": "さま",
+  "romaji": "sama"
+ },
+ "機": {
+  "reading": "き",
+  "romaji": "ki"
+ },
+ "止": {
+  "reading": "とまる",
+  "romaji": "tomaru"
+ },
+ "正": {
+  "reading": "ただしい",
+  "romaji": "tadashii"
+ },
+ "歩": {
+  "reading": "あるく",
+  "romaji": "aruku"
+ },
+ "歳": {
+  "meaning": "age suffix; years old",
+  "reading": "さい",
+  "romaji": "sai"
+ },
+ "残": {
+  "reading": "のこる",
+  "romaji": "nokoru"
+ },
+ "毎": {
+  "reading": "まい",
+  "romaji": "mai"
+ },
+ "比": {
+  "reading": "ひ",
+  "romaji": "hi"
+ },
+ "決": {
+  "reading": "きめる",
+  "romaji": "kimeru"
+ },
+ "治": {
+  "reading": "なおる",
+  "romaji": "naoru"
+ },
+ "泊": {
+  "reading": "とまる",
+  "romaji": "tomaru"
+ },
+ "法": {
+  "reading": "ほう",
+  "romaji": "hō"
+ },
+ "泣": {
+  "reading": "なく",
+  "romaji": "naku"
+ },
+ "泳": {
+  "reading": "およぐ",
+  "romaji": "oyogu"
+ },
+ "洋": {
+  "reading": "よう",
+  "romaji": "yō"
+ },
+ "洗": {
+  "reading": "あらう",
+  "romaji": "arau"
+ },
+ "活": {
+  "reading": "かつ",
+  "romaji": "katsu"
+ },
+ "温": {
+  "reading": "あたたかい",
+  "romaji": "atatakai"
+ },
+ "漢": {
+  "reading": "かん",
+  "romaji": "kan"
+ },
+ "無": {
+  "reading": "む",
+  "romaji": "mu"
+ },
+ "然": {
+  "meaning": "suffix (-ly, -like)",
+  "reading": "ぜん",
+  "romaji": "zen"
+ },
+ "特": {
+  "reading": "とく",
+  "romaji": "toku"
+ },
+ "現": {
+  "reading": "げん",
+  "romaji": "gen"
+ },
+ "理": {
+  "reading": "り",
+  "romaji": "ri"
+ },
+ "用": {
+  "reading": "よう",
+  "romaji": "yō"
+ },
+ "田": {
+  "reading": "た",
+  "romaji": "ta"
+ },
+ "由": {
+  "meaning": "reason",
+  "reading": "ゆう",
+  "romaji": "yū"
+ },
+ "画": {
+  "reading": "が",
+  "romaji": "ga"
+ },
+ "界": {
+  "reading": "かい",
+  "romaji": "kai"
+ },
+ "留": {
+  "reading": "りゅう",
+  "romaji": "ryū"
+ },
+ "番": {
+  "meaning": "number; turn",
+  "reading": "ばん",
+  "romaji": "ban"
+ },
+ "病": {
+  "reading": "びょう",
+  "romaji": "byō"
+ },
+ "痛": {
+  "reading": "いたい",
+  "romaji": "itai"
+ },
+ "発": {
+  "reading": "はつ",
+  "romaji": "hatsu"
+ },
+ "登": {
+  "reading": "のぼる",
+  "romaji": "noboru"
+ },
+ "的": {
+  "meaning": "adjective ending (-tic, -like)",
+  "reading": "てき",
+  "romaji": "teki"
+ },
+ "皆": {
+  "reading": "みんな",
+  "romaji": "minna"
+ },
+ "相": {
+  "reading": "そう",
+  "romaji": "sō"
+ },
+ "県": {
+  "reading": "けん",
+  "romaji": "ken"
+ },
+ "着": {
+  "reading": "きる",
+  "romaji": "kiru"
+ },
+ "知": {
+  "reading": "しる",
+  "romaji": "shiru"
+ },
+ "短": {
+  "reading": "みじかい",
+  "romaji": "mijikai"
+ },
+ "研": {
+  "reading": "けん",
+  "romaji": "ken"
+ },
+ "礼": {
+  "reading": "れい",
+  "romaji": "rei"
+ },
+ "祭": {
+  "reading": "まつり",
+  "romaji": "matsuri"
+ },
+ "科": {
+  "reading": "か",
+  "romaji": "ka"
+ },
+ "究": {
+  "reading": "きゅう",
+  "romaji": "kyū"
+ },
+ "立": {
+  "reading": "たつ",
+  "romaji": "tatsu"
+ },
+ "笑": {
+  "reading": "わらう",
+  "romaji": "warau"
+ },
+ "第": {
+  "reading": "だい",
+  "romaji": "dai"
+ },
+ "答": {
+  "reading": "こたえ",
+  "romaji": "kotae"
+ },
+ "節": {
+  "reading": "せつ",
+  "romaji": "setsu"
+ },
+ "終": {
+  "meaning": "to end",
+  "reading": "おわる",
+  "romaji": "owaru"
+ },
+ "組": {
+  "reading": "くむ",
+  "romaji": "kumu"
+ },
+ "結": {
+  "reading": "むすぶ",
+  "romaji": "musubu"
+ },
+ "続": {
+  "reading": "つづく",
+  "romaji": "tsuzuku"
+ },
+ "練": {
+  "reading": "れん",
+  "romaji": "ren"
+ },
+ "置": {
+  "reading": "おく",
+  "romaji": "oku"
+ },
+ "美": {
+  "reading": "うつくしい",
+  "romaji": "utsukushii"
+ },
+ "習": {
+  "meaning": "to learn; custom",
+  "reading": "ならう",
+  "romaji": "narau"
+ },
+ "考": {
+  "reading": "かんがえる",
+  "romaji": "kangaeru"
+ },
+ "聞": {
+  "reading": "きく",
+  "romaji": "kiku"
+ },
+ "育": {
+  "reading": "そだてる",
+  "romaji": "sodateru"
+ },
+ "自": {
+  "reading": "じ",
+  "romaji": "ji"
+ },
+ "良": {
+  "reading": "よい",
+  "romaji": "yoi"
+ },
+ "若": {
+  "reading": "わかい",
+  "romaji": "wakai"
+ },
+ "荷": {
+  "reading": "に",
+  "romaji": "ni"
+ },
+ "落": {
+  "reading": "おちる",
+  "romaji": "ochiru"
+ },
+ "行": {
+  "reading": "いく",
+  "romaji": "iku"
+ },
+ "術": {
+  "reading": "じゅつ",
+  "romaji": "jutsu"
+ },
+ "見": {
+  "reading": "みる",
+  "romaji": "miru"
+ },
+ "言": {
+  "reading": "いう",
+  "romaji": "iu"
+ },
+ "計": {
+  "reading": "けい",
+  "romaji": "kei"
+ },
+ "記": {
+  "reading": "き",
+  "romaji": "ki"
+ },
+ "試": {
+  "reading": "ためす",
+  "romaji": "tamesu"
+ },
+ "語": {
+  "reading": "ご",
+  "romaji": "go"
+ },
+ "説": {
+  "meaning": "theory; explanation",
+  "reading": "せつ",
+  "romaji": "setsu"
+ },
+ "読": {
+  "reading": "よむ",
+  "romaji": "yomu"
+ },
+ "買": {
+  "reading": "かう",
+  "romaji": "kau"
+ },
+ "貸": {
+  "reading": "かす",
+  "romaji": "kasu"
+ },
+ "贈": {
+  "reading": "おくる",
+  "romaji": "okuru"
+ },
+ "走": {
+  "reading": "はしる",
+  "romaji": "hashiru"
+ },
+ "起": {
+  "reading": "おきる",
+  "romaji": "okiru"
+ },
+ "転": {
+  "reading": "てん",
+  "romaji": "ten"
+ },
+ "辞": {
+  "meaning": "to resign; word",
+  "reading": "じ",
+  "romaji": "ji"
+ },
+ "近": {
+  "reading": "ちかい",
+  "romaji": "chikai"
+ },
+ "送": {
+  "reading": "おくる",
+  "romaji": "okuru"
+ },
+ "通": {
+  "reading": "とおる",
+  "romaji": "tōru"
+ },
+ "速": {
+  "reading": "はやい",
+  "romaji": "hayai"
+ },
+ "進": {
+  "reading": "すすむ",
+  "romaji": "susumu"
+ },
+ "遅": {
+  "reading": "おそい",
+  "romaji": "osoi"
+ },
+ "遊": {
+  "reading": "あそぶ",
+  "romaji": "asobu"
+ },
+ "達": {
+  "meaning": "plural suffix (people)",
+  "reading": "たち",
+  "romaji": "tachi"
+ },
+ "遠": {
+  "reading": "とおい",
+  "romaji": "tōi"
+ },
+ "選": {
+  "reading": "えらぶ",
+  "romaji": "erabu"
+ },
+ "部": {
+  "reading": "ぶ",
+  "romaji": "bu"
+ },
+ "都": {
+  "reading": "と",
+  "romaji": "to"
+ },
+ "配": {
+  "reading": "くばる",
+  "romaji": "kubaru"
+ },
+ "重": {
+  "reading": "おもい",
+  "romaji": "omoi"
+ },
+ "野": {
+  "reading": "の",
+  "romaji": "no"
+ },
+ "長": {
+  "reading": "ながい",
+  "romaji": "nagai"
+ },
+ "閉": {
+  "reading": "しめる",
+  "romaji": "shimeru"
+ },
+ "開": {
+  "reading": "あける",
+  "romaji": "akeru"
+ },
+ "関": {
+  "meaning": "barrier; to be related",
+  "reading": "かん",
+  "romaji": "kan"
+ },
+ "降": {
+  "reading": "ふる",
+  "romaji": "furu"
+ },
+ "院": {
+  "reading": "いん",
+  "romaji": "in"
+ },
+ "階": {
+  "reading": "かい",
+  "romaji": "kai"
+ },
+ "集": {
+  "reading": "あつめる",
+  "romaji": "atsumeru"
+ },
+ "雑": {
+  "reading": "ざつ",
+  "romaji": "zatsu"
+ },
+ "難": {
+  "meaning": "difficult",
+  "reading": "むずかしい",
+  "romaji": "muzukashii"
+ },
+ "電": {
+  "reading": "でん",
+  "romaji": "den"
+ },
+ "静": {
+  "reading": "しずか",
+  "romaji": "shizuka"
+ },
+ "非": {
+  "reading": "ひ",
+  "romaji": "hi"
+ },
+ "題": {
+  "reading": "だい",
+  "romaji": "dai"
+ },
+ "願": {
+  "reading": "ねがう",
+  "romaji": "negau"
+ },
+ "飛": {
+  "reading": "とぶ",
+  "romaji": "tobu"
+ },
+ "食": {
+  "reading": "たべる",
+  "romaji": "taberu"
+ },
+ "飯": {
+  "reading": "めし",
+  "romaji": "meshi"
+ },
+ "飲": {
+  "reading": "のむ",
+  "romaji": "nomu"
+ },
+ "館": {
+  "reading": "かん",
+  "romaji": "kan"
+ },
+ "験": {
+  "reading": "けん",
+  "romaji": "ken"
+ },
+ "高": {
+  "reading": "たかい",
+  "romaji": "takai"
+ },
+ "黄": {
+  "reading": "き",
+  "romaji": "ki"
+ }
+}

@@ -1,0 +1,1507 @@
+/* Kotoba Liquid Glass — build 52.
+   Inspired by liquid-glass-react (MIT): frosted tint, a luminous rim and
+   reflected highlights. Native backdrop composition stays behind the text.
+   No SVG displacement, duplicate overlay plates or moving text filters.
+   Geometry is shared by ON/OFF; lists use inherited frost without per-tile
+   GPU blur. Layout wrappers never become extra glass plates. */
+html[data-ui-shell="immersive"] {
+ --liquid-panel: rgba(29,43,64,.45); --liquid-panel-strong: rgba(29,43,64,.34);
+ --liquid-bar: rgba(29,43,64,.42);
+ --liquid-trim: var(--line);
+ --liquid-shine: transparent;
+ --liquid-reflection: linear-gradient(transparent,transparent);
+ --liquid-blur: none;
+ --liquid-shadow: 0 4px 14px #00000010;
+ --liquid-brand: rgba(27,44,71,.48);
+ --shell-surface:var(--liquid-panel);
+ --shell-surface-strong:var(--liquid-panel-strong);
+ --shell-header-bg:var(--liquid-bar);
+ --shell-input-bg:var(--liquid-panel-strong);
+ --liquid-inset: #ffffff1a; --liquid-dialog: var(--card-bg);
+}
+html[data-ui-shell="immersive"][data-glass="on"] {
+ --liquid-shine: #ffffff36;
+ --liquid-reflection: linear-gradient(135deg,#ffffff18 0%,#ffffff04 36%,transparent 58%,#ffffff0a 100%);
+ --liquid-blur: blur(18px) saturate(145%);
+ --liquid-shadow: inset 0 1px 0 var(--liquid-shine),inset 0 -1px 0 #00000010,0 6px 18px #00000016;
+}
+/* Guard custom-property syntax as well as the property itself for older WebViews. */
+@supports (background:color-mix(in srgb,white 50%,transparent)) {
+ html[data-ui-shell="immersive"][data-glass="on"] {
+  --liquid-panel: color-mix(in srgb,var(--card-bg) 43%,transparent);
+  --liquid-panel-strong: color-mix(in srgb,var(--card-bg) 36%,transparent);
+  --liquid-inset: color-mix(in srgb,var(--card-bg) 16%,transparent);
+  --liquid-dialog: color-mix(in srgb,var(--card-bg) 70%,transparent);
+  --liquid-bar: color-mix(in srgb,var(--paper) 48%,transparent);
+  --liquid-trim: color-mix(in srgb,white 24%,var(--line));
+  --liquid-brand: color-mix(in srgb,#1B2C47 48%,transparent);
+ }
+}
+/* Shared content surfaces across every route and dynamically opened panels. */
+html[data-ui-shell="immersive"] :is(
+ .site-main > .page-head, .detail-top, .rad-section, .sentence-section,
+ .hero, .home-hero, .journey-hero, .continue-card, .journey-chapter, .focus-card,
+ .home-stat, .home-companion, .home-search-card, .advanced-callout, .achievement-card,
+ .learner-stat, .path-card, .japan-path-card, .section-card, .learn-card, .quiz-card,
+ .explain-card, .exam-quiz-card, .review-card, .review-session-card, .speaking-card,
+ .speaking-result, .grammar-detail-card, .grammar-quiz, .story-card, .story-body,
+ .story-quiz, .convo, .vocab-section, .rad-panel, .rad-intro-card, .detail-info,
+ .rm-panel, .rm-guide, .rm-section-banner, .rm-done-panel, .rm-summary,
+ .jlpt-level-card, .japan-map-card, .japan-list-panel, .japan-train-panel,
+ .japan-passport-card, .japan-hero, .japan-season-banner, .japan-mini-quiz,
+ .japan-how > div, .search-entry-panel, .search-prefix-results, .about-card,
+ .backup-card, .favorite-list-block, .mistake-card, .write-panel, .sub-panel,
+ .feedback-form, .settings-panel, .modal-card, .wallpaper-crop-dialog,
+ .voice-search-dialog, .practice-exit-dialog, .japan-passport-modal,
+ .notification-preview, .placement-card, .write-sheet, .study-panel,
+ .onboarding-card, .flash-face, .stage-panel, .exam-stage-panel,
+ .japan-drawer, .japan-dialect-card, .japan-situation-card,
+ .trace-pad-shell, .category-block, .exam-passage, .explain-block,
+ .about-item, .write-output, .favorite-copy-target
+) {
+ background-color: var(--liquid-panel) !important;
+ background-image: var(--liquid-reflection) !important;
+ border: 1px solid var(--liquid-trim);
+ border-radius: 22px;
+ box-shadow: var(--liquid-shadow) !important;
+ -webkit-backdrop-filter: var(--liquid-blur) !important;
+ backdrop-filter: var(--liquid-blur) !important;
+ filter: none;
+ min-width: 0;
+ max-width: 100%;
+}
+html[data-ui-shell="immersive"] :is(
+ .site-main > .page-head,.detail-top,.rad-section,.sentence-section,.stage-panel,.exam-stage-panel,.mock-stage
+) { padding: clamp(14px,3vw,22px); }
+/* Smaller glass tiles have the same rim and reflections, with no second blur
+   behind their text. This avoids expensive hundreds-of-layer catalogs. */
+html[data-ui-shell="immersive"] :is(
+ .kanji-card, .kana-tile, .rad-card, .grammar-card, .grammar-point,
+ .grammar-example, .search-result-card, .favorite-card, .japan-gallery-card,
+ .japan-word-card, .japan-fact-grid > div, .japan-phrase-card, .japan-place-card,
+ .story-line, .convo-line, .vocab-row, .result-row, .everyday-row, .verb-row,
+ .jlpt-entry-card, .rm-word-card, .sentence-card, .rad-origin, .rad-tip,
+ .rad-build, .rad-ex, .rad-read-list, .reading-list > div, .fc-radical,
+ .japan-passport-stamp, .japan-passport-stats > div,
+ .japan-passport-region-grid article, .japan-passport-train-grid button,
+ .home-quick-actions a, .review-topline, .review-summary, .speaking-line,
+ .trace-helper, .kanji-source-badge, .rad-form-chip, .filter-chip, .result-chip,
+ .mini-stat, .flash-hint, .flash-meta, .kanji-lockscreen-help,
+ .kanji-notification-choices, .kanji-notification-choice, .rm-summary-list li,
+ .detail-char, .rad-panel-glyph, .rad-ex-char, .continue-icon, .focus-icon,
+ .home-stat-icon, .rm-node, .rm-stage-badge, .chapter-cover,
+ .mission-card, .connection-note, .site-footer, .rm-toast,
+ .rm-stage-nav a, .trace-stage, .trace-picker button, .kb-key,
+ .rm-next-hint, .sentence-usage, .quiz-item, .mcq-review-row,
+ .exam-review-card, .exam-category-chip, .mock-toolbar, .mock-dot,
+ .mock-history > div, .mock-breakdown > div
+) {
+ background-color: var(--liquid-panel-strong);
+ background-image: var(--liquid-reflection);
+ border: 1px solid var(--liquid-trim);
+ border-radius: 16px;
+ box-shadow: inset 0 1px 0 var(--liquid-shine);
+ -webkit-backdrop-filter: none;
+ backdrop-filter: none;
+ filter: none;
+ min-width: 0;
+ max-width: 100%;
+}
+html[data-ui-shell="immersive"] :is(.reading-list > div,.rad-origin,.rad-tip,.rad-build,.rad-read-list) { padding:12px 14px; }
+html[data-ui-shell="immersive"] .reading-list {gap:12px;}
+html[data-ui-shell="immersive"] .reading-list > div { flex:1 1 200px; }
+/* Every control has a glass finish. Colored feedback/selection still wins. */
+html[data-ui-shell="immersive"][data-glass="on"] :is(
+ button:not(.switch):not(.theme-opt):not(.kanji-card):not(.kana-tile):not(.rad-card):not(.everyday-row),
+ .btn, .btn-primary, .btn-ghost, .back-link, .page-back, .settings-action-link,
+ .kanji-notification-link, .line-speak, .flash-controls button,
+ .kanji-level-filters button, .rm-stage-nav a, .jlpt-tab, .cat-tab,
+ .kotoba-bottom-nav a, .streak-badge, .review-due-badge,
+ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+ select, textarea, .theme-opt, .switch
+):not(:is(.btn-primary,.hero-search > button,.active,.selected,.correct,.incorrect,.wrong,.rm-correct,.rm-wrong,[aria-pressed="true"],[aria-checked="true"],:disabled)) {
+ background-color: var(--liquid-panel-strong);
+ color:var(--ink);
+ background-image: var(--liquid-reflection);
+ border-color: var(--liquid-trim);
+ box-shadow: inset 0 1px 0 var(--liquid-shine);
+ -webkit-backdrop-filter: none;
+ backdrop-filter: none;
+}
+html[data-ui-shell="immersive"][data-glass="on"] :is(.btn-primary,.btn-ghost,button,input,select,textarea,.kotoba-bottom-nav a) {
+ background-image: var(--liquid-reflection);
+}
+/* Preserve correct/incorrect/selected answers; never distort their glyphs. */
+html[data-ui-shell="immersive"][data-glass="on"] :is(
+ .quiz-option.correct,.quiz-option.incorrect,.quiz-option.selected,
+ .rm-option.rm-correct,.rm-option.rm-wrong,
+ .exam-option.correct,.exam-option.incorrect,.exam-option.selected,
+ .japan-quiz-options button.correct,.japan-quiz-options button.wrong,
+ .mission-card.done,.trace-verdict.pass,.trace-verdict.fail,
+ .japan-place-card.visited,.japan-passport-stamp.stamped
+) { filter:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+/* Neutral roadmap choices share the control finish. */
+html[data-ui-shell="immersive"][data-glass="on"] .rm-option:not(.rm-correct):not(.rm-wrong) {
+ background-color:var(--liquid-panel-strong);
+}
+/* One visible card owns a pane; the grid/flex wrapper remains a layout. */
+html[data-ui-shell="immersive"] :is(
+ .practice-stage, .game-stage, .speaking-stage, .review-stage,
+ .flash-mode, .flashcard, .kana-group, .exam-practice-stage,
+ .japan-explorer-layout, .japan-fact-grid, .japan-gallery,
+ .home-quick-actions, .focus-grid, .journey-chapters, .search-results,
+ .vocab-table, .reading-list, .detail-actions, .kanji-level-filters,
+ .kanji-filter-row, .japan-word-grid, .japan-food-tags,
+ .japan-lesson-actions, .japan-quiz-options, .rm-summary-list
+) {
+ background: transparent !important;
+ border:0 !important;
+ box-shadow:none !important;
+ -webkit-backdrop-filter:none !important;
+ backdrop-filter:none !important;
+ filter:none;
+}
+@supports selector(:has(.quiz-card)) {
+ html[data-ui-shell="immersive"] :is(.stage-panel,.exam-stage-panel,.mock-stage,.rm-panel):has(:is(.quiz-card,.learn-card,.exam-quiz-card,.speaking-card,.review-card,.rm-word-card,.flash-face)) {
+  background:transparent !important; border:0; box-shadow:none !important;
+  -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+ }
+}
+html[data-ui-shell="immersive"] .exam-practice-stage > .exam-stage-panel:is(#exam-panel-intro,#exam-panel-results) {border-radius:22px;}
+html[data-ui-shell="immersive"] .detail-top > .detail-info {
+ background:transparent !important; border:0; box-shadow:none !important;
+ -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+}
+/* No page-sized compositing sheet behind a dialog. */
+html[data-ui-shell="immersive"] .modal-overlay {
+ background:rgba(8,15,32,.68); -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+}
+html[data-ui-shell="immersive"] .modal-overlay > .modal-card {border-radius:22px;}
+/* Navigation, the original logo and opening logo all share the glass finish. */
+html[data-ui-shell="immersive"] :is(.site-header,.kotoba-bottom-nav) {
+ background:var(--liquid-bar) !important;
+ border:1px solid var(--liquid-trim);
+ box-shadow:var(--liquid-shadow);
+ -webkit-backdrop-filter:var(--liquid-blur) !important;
+ backdrop-filter:var(--liquid-blur) !important;
+ filter:none; overflow:visible;
+}
+html[data-ui-shell="immersive"] .brand {
+ background-color:var(--liquid-brand);
+ background-image:var(--liquid-reflection);
+ border:1px solid var(--liquid-trim);
+ border-radius:16px;
+ box-shadow:var(--liquid-shadow);
+ -webkit-backdrop-filter:var(--liquid-blur);
+ backdrop-filter:var(--liquid-blur);
+}
+/* Opening screen: the logo sits directly on the scene, with no bounding box. */
+html[data-ui-shell="immersive"] .kotoba-intro-logo {padding:0;max-width:min(340px,100%);margin-inline:auto;background:none !important;background-image:none !important;border:0 !important;border-radius:0;box-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+html[data-ui-shell="immersive"] :is(.brand-jp,.brand-en,.kotoba-intro-logo h1,.kotoba-intro-logo p) {color:#F5EFE5;}
+html[data-ui-shell="immersive"] :is(.brand-mark,.intro-mark) {
+ object-fit:contain; border:1px solid #ffffff33; box-shadow:inset 0 1px 0 #ffffff38,0 3px 8px #00000014;
+}
+html[data-ui-shell="immersive"] .brand-text {line-height:1.45;min-width:0;}
+html[data-ui-shell="immersive"] .brand {flex-shrink:0;}
+html[data-ui-shell="immersive"] .brand-mark {flex:0 0 auto;}
+html[data-ui-shell="immersive"] .site-header::before,
+html[data-ui-shell="immersive"] .site-header::after,
+html[data-ui-shell="immersive"] .kotoba-bottom-nav::before,
+html[data-ui-shell="immersive"] .kotoba-bottom-nav::after {content: none !important;}
+html[data-ui-shell="immersive"] :is(.kotoba-glass-warp,.kotoba-glass-refractive::after) {display:none !important;}
+/* OFF removes ALL backdrop effects, including components from older shell CSS,
+   dropdowns, dialogs, logo and pseudo elements; wallpaper and progress stay put. */
+html[data-ui-shell="immersive"][data-glass="off"] {
+ --shell-surface:var(--liquid-panel); --shell-surface-strong:var(--liquid-panel-strong);
+ --shell-header-bg:var(--liquid-bar); --shell-input-bg:var(--liquid-panel-strong);
+ --liquid-panel:rgba(25,35,50,.28); --liquid-panel-strong:rgba(25,35,50,.19);
+ --liquid-inset:rgba(25,35,50,.10); --liquid-dialog:rgba(25,35,50,.58);
+ --liquid-bar:rgba(25,35,50,.32); --liquid-brand:rgba(27,44,71,.32);
+ --liquid-reflection:none; --liquid-shine:transparent;
+}
+html[data-ui-shell="immersive"][data-glass="off"] *,
+html[data-ui-shell="immersive"][data-glass="off"] *::before,
+html[data-ui-shell="immersive"][data-glass="off"] *::after {
+ -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+}
+html[data-ui-shell="immersive"][data-glass="off"] :is(.brand,.kotoba-intro-logo,.site-header,.kotoba-bottom-nav) {background-image:none;}
+html[data-ui-shell="immersive"][data-glass="on"][data-glass-quality="lite"] {--liquid-blur:none;}
+@media (prefers-reduced-transparency: reduce) {
+ html[data-ui-shell="immersive"][data-glass="on"] {--liquid-panel:var(--card-bg);--liquid-panel-strong:var(--card-bg);--liquid-bar:var(--paper);--liquid-blur:none;}
+}
+@media (prefers-reduced-motion: reduce) {
+ html[data-ui-shell="immersive"][data-glass="on"] .tap-effect-ripple {display:none;}
+ html[data-ui-shell="immersive"][data-glass="on"] .kotoba-bottom-nav a {transition:none;}
+}
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))) {
+ html[data-ui-shell="immersive"][data-glass="on"] {--liquid-panel:var(--card-bg);--liquid-panel-strong:var(--card-bg);--liquid-bar:var(--paper);--liquid-blur:none;}
+}
+/* Layout containment is independent of the glass preference. Text wraps and
+   panels grow instead of clipping letters behind overflow:hidden. */
+html[data-ui-shell="immersive"] .site-main { min-width:0; }
+html[data-ui-shell="immersive"] .site-main :is(h1,h2,h3,p,dt,dd,li,span,button,a,label,small,code,th,td) {
+ min-width:0; overflow-wrap:anywhere;
+}
+html[data-ui-shell="immersive"] :is(.page-head,.detail-top,.rad-section,.sentence-section,.stage-panel,.exam-stage-panel,.mock-stage,.detail-info) { overflow:visible; }
+html[data-ui-shell="immersive"] .detail-top {
+ display:grid; grid-template-columns:minmax(0,140px) minmax(0,1fr);
+ gap:clamp(12px,2vw,24px); align-items:start;
+}
+html[data-ui-shell="immersive"] .detail-char {
+ width:min(140px,100%); height:auto; min-height:140px; aspect-ratio:1;
+ font-size:clamp(48px,16vw,84px); line-height:1.5; padding:14px;
+}
+html[data-ui-shell="immersive"] :is(.detail-info,.rad-panel-body,.rad-ex-body,.continue-copy,.chapter-copy,.home-hero-copy,.settings-row > span) {min-width:0;max-width:100%;}
+html[data-ui-shell="immersive"] .reading-list > div {min-width:0;max-width:100%;}
+html[data-ui-shell="immersive"] :is(.detail-actions,.rm-btn-row,.stage-controls,.jlpt-level-tabs,.practice-cta-row,.settings-goal-chips) {display:flex;flex-wrap:wrap;gap:8px;}
+html[data-ui-shell="immersive"] :is(button,.btn,.btn-primary,.btn-ghost,.back-link,.kanji-notification-link) {white-space:normal;max-width:100%;}
+html[data-ui-shell="immersive"] :is(.vocab-row,.result-row) {grid-template-columns:repeat(4,minmax(0,1fr));}
+html[data-ui-shell="immersive"] .everyday-row {grid-template-columns:30px repeat(3,minmax(0,1fr)) minmax(0,1.6fr);}
+html[data-ui-shell="immersive"] .verb-row {grid-template-columns:repeat(4,minmax(0,1fr));}
+html[data-ui-shell="immersive"] :is(.vocab-row,.result-row,.everyday-row) > * {min-width:0;max-width:100%;}
+html[data-ui-shell="immersive"] :is(.kanji-card,.kana-tile,.rad-card,.grammar-card,.jlpt-entry-card) {height:auto;white-space:normal;}
+html[data-ui-shell="immersive"] :is(.kanji-card-meaning,.rad-card-meaning,.rad-card-name) {width:100%;line-height:1.55;}
+html[data-ui-shell="immersive"] .flash-face {font-size:clamp(24px,8vw,60px);line-height:1.5;overflow-y:auto;}
+html[data-ui-shell="immersive"] .modal-card {min-width:0;max-width:calc(100vw - 24px);padding:clamp(16px,3vw,28px);}
+html[data-ui-shell="immersive"] :is(.modal-card,.voice-search-dialog,.wallpaper-crop-dialog,.practice-exit-dialog,.japan-passport-modal) {overflow-y:auto;overscroll-behavior:contain;}
+html[data-ui-shell="immersive"] .conj-table {table-layout:fixed;width:100%;}
+html[data-ui-shell="immersive"] .site-header {flex-wrap:wrap;}
+html[data-ui-shell="immersive"] .header-search {min-width:0;flex:1 1 240px;}
+html[data-ui-shell="immersive"] .site-nav {flex-wrap:wrap;}
+html[data-ui-shell="immersive"] .settings-row > span {flex:1;}
+html[data-ui-shell="immersive"] .settings-row small {display:block;line-height:1.5;}
+html[data-ui-shell="immersive"] .switch {flex-shrink:0;}
+html[data-ui-shell="immersive"] #liquid-glass-hint {display:block;margin:6px 0 12px;line-height:1.6;}
+html[data-ui-shell="immersive"] .settings-panel {overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;}
+/* The generic glass-panel rule above sets max-width:100%, which for this absolutely positioned
+   dropdown means 100% of the 40px settings-button wrapper (a thin vertical strip). Restore its
+   real size on desktop; on phones it is a fixed bottom sheet and already sizes itself. */
+/* The dropdown lives inside the blurred header, so its own backdrop blur cannot reach the page
+   behind it and a see-through fill lets the page text bleed into the menu. Keep it opaque. */
+html[data-ui-shell="immersive"] #settings-panel.settings-panel {background-color:var(--card-bg) !important;background-image:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+@media (min-width:561px){
+ html[data-ui-shell="immersive"] .settings-panel {width:min(320px,calc(100vw - 24px)) !important;max-width:calc(100vw - 24px) !important;min-width:min(260px,calc(100vw - 24px)) !important;}
+}
+html[data-ui-shell="immersive"] .journey-art {min-width:0;max-width:100%;margin-right:0;overflow:hidden;}
+html[data-ui-shell="immersive"] .journey-art svg {width:100%;min-width:0;max-width:100%;}
+html[data-ui-shell="immersive"] .japan-passport-card {overflow-wrap:anywhere;min-width:0;}
+html[data-ui-shell="immersive"] .japan-passport-card > * {min-width:0;max-width:100%;}
+html[data-ui-shell="immersive"] .japan-passport-card {color:var(--ink);}
+html[data-ui-shell="immersive"] :is(.passport-top,.passport-progress) {flex-wrap:wrap;}
+html[data-ui-shell="immersive"][data-glass="off"] :is(
+ button:not(.switch),.btn,.btn-primary,.btn-ghost,.back-link,.page-back,
+ .settings-action-link,.kanji-notification-link,.kotoba-bottom-nav a,
+ .streak-badge,.review-due-badge,input,select,textarea
+):not(:is(.btn-primary,.hero-search > button,.active,.selected,.correct,.incorrect,.wrong,.rm-correct,.rm-wrong,[aria-pressed="true"],:disabled)) {
+ background-color:var(--clear-control,var(--card-bg));color:var(--ink);background-image:none;
+}
+html[data-ui-shell="immersive"] .japan-passport-card h2 {font-size:clamp(20px,4vw,32px);white-space:normal;}
+html[data-ui-shell="immersive"][data-glass="on"] :is(.mission-card.done,.quiz-option.correct,.exam-option.correct,.japan-quiz-options button.correct) {
+ background-color:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-line);
+}
+@media(max-width:700px) {
+ html[data-ui-shell="immersive"] .detail-top {grid-template-columns:minmax(0,1fr);}
+ html[data-ui-shell="immersive"] .detail-char {justify-self:center;}
+ html[data-ui-shell="immersive"] .journey-hero {display:grid;grid-template-columns:minmax(0,1fr);}
+ html[data-ui-shell="immersive"] :is(.vocab-row,.result-row,.verb-row) {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+ html[data-ui-shell="immersive"] .everyday-row:not(.verb-row) {grid-template-columns:26px minmax(0,1fr) minmax(0,1fr);gap:8px;}
+ html[data-ui-shell="immersive"] .everyday-row:not(.verb-row) :is(.everyday-meaning,.everyday-romaji,.everyday-category) {display:block;grid-column:2 / -1;}
+ html[data-ui-shell="immersive"] .verb-row .everyday-meaning {grid-column:1 / -1;}
+ html[data-ui-shell="immersive"] .jlpt-level-tabs a {flex:1 1 42px;text-align:center;}
+ html[data-ui-shell="immersive"] .rad-panel-row {flex-wrap:wrap;}
+}
+@media(max-width:420px) {
+ html[data-ui-shell="immersive"] :is(.vocab-row,.result-row) {grid-template-columns:minmax(0,1fr);}
+ html[data-ui-shell="immersive"] .kanji-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ html[data-ui-shell="immersive"] .kana-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+/* Keep single glyph links from being shrunk by adjacent long explanations. */
+html[data-ui-shell="immersive"] .rad-ex-char {flex:0 0 56px;width:56px;min-width:56px;line-height:1.5;padding:4px;}
+html[data-ui-shell="immersive"] .rad-ex-body {flex:1 1 0;}
+html[data-ui-shell="immersive"] .rm-chapter-title-row > div {min-width:0;}
+html[data-ui-shell="immersive"] .koto-mini {flex:0 0 78px;width:78px;display:flex;justify-content:center;}
+html[data-ui-shell="immersive"] .japan-place-card {grid-template-columns:38px minmax(0,1fr) 24px;}
+html[data-ui-shell="immersive"] .japan-place-card :is(small,strong,p) {white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
+html[data-ui-shell="immersive"] .japan-map-hint {white-space:normal;overflow-wrap:anywhere;max-width:calc(100% - 24px);}
+html[data-ui-shell="immersive"] .koto-mini .koto-mascot {--koto-size:62px;}
+/* Word-card entry stays inside its bounds during every animation frame. */
+@keyframes rm-card-fit {from{opacity:.45;transform:scale(.99)}to{opacity:1;transform:none}}
+html[data-ui-shell="immersive"] .rm-card-enter {animation-name:rm-card-fit;}
+html[data-ui-shell="immersive"] .passport-track {background:var(--line);}
+html[data-ui-shell="immersive"] .passport-track i {background:var(--seal);}
+html[data-ui-shell="immersive"] .japan-place-copy em {display:block;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
+html[data-ui-shell="immersive"][data-glass="on"][data-glass-quality="lite"] *,
+html[data-ui-shell="immersive"][data-glass="on"][data-glass-quality="lite"] *::before,
+html[data-ui-shell="immersive"][data-glass="on"][data-glass-quality="lite"] *::after {
+ -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+}
+html[data-ui-shell="immersive"] .kotoba-intro-logo h1 {font-size:clamp(36px,12vw,72px);line-height:1.35;overflow-wrap:anywhere;}
+html[data-ui-shell="immersive"] .kotoba-intro-logo p {line-height:1.6;overflow-wrap:anywhere;}
+html[data-ui-shell="immersive"] .kotoba-intro-tagline {max-width:100%;overflow-wrap:anywhere;}
+/* Filled actions and progress keep their contrasting semantic palette.
+   The reflection sits over the accent; it never replaces the accent fill. */
+html[data-ui-shell="immersive"] .btn-primary {background-color:var(--indigo);color:var(--on-accent);border-color:var(--indigo);}
+html[data-ui-shell="immersive"] .rm-node.rm-unlocked {background-color:var(--seal);color:var(--on-accent);}
+html[data-ui-shell="immersive"] .rm-node.rm-completed {background-color:var(--indigo);color:var(--on-accent);}
+html[data-ui-shell="immersive"] :is(.chapter-cover,.continue-icon,.focus-icon,.home-stat-icon,.rm-stage-badge,.rm-toast) {color:var(--ink);}
+html[data-ui-shell="immersive"] .passport-sun {background-color:var(--seal);color:var(--on-accent);background-image:var(--liquid-reflection);}
+html[data-ui-shell="immersive"] :is(.japan-place-card.visited,.japan-passport-stamp.stamped) {background-color:var(--ok-bg);border-color:var(--ok-line);}
+/* Tap ripples must not shrink scroll-list grid rows between press and release. */
+html[data-ui-shell="immersive"] .japan-place-list {grid-auto-rows:max-content;align-content:start;}
+html[data-ui-shell="immersive"] .japan-place-card {min-height:min-content;}
+/* ------------------------------------------------------------------
+   Liquid Glass OFF = "clear glass".
+   Surfaces stay see-through (no blur, no refraction, no sheen) so the user's
+   wallpaper / theme background shows through instead of being hidden behind
+   solid cards. Panels keep enough tint for text to stay readable.
+   ------------------------------------------------------------------ */
+@supports (background:color-mix(in srgb,white 50%,transparent)) {
+ html[data-ui-shell="immersive"][data-glass="off"] {
+  --clear-panel: color-mix(in srgb,var(--card-bg) 23%,transparent);
+  --clear-control: color-mix(in srgb,var(--card-bg) 17%,transparent);
+  --clear-bar: color-mix(in srgb,var(--paper) 26%,transparent);
+  --liquid-panel: var(--clear-panel);
+  --liquid-panel-strong: var(--clear-control);
+  --liquid-inset: color-mix(in srgb,var(--card-bg) 8%,transparent);
+  --liquid-dialog: color-mix(in srgb,var(--card-bg) 53%,transparent);
+  --liquid-bar: var(--clear-bar);
+  --liquid-brand: color-mix(in srgb,#1B2C47 32%,transparent);
+  --liquid-trim: color-mix(in srgb,white 30%,var(--line));
+  --liquid-reflection: none;
+  --liquid-shadow: inset 0 1px 0 #ffffff1f,0 2px 10px #00000012;
+  --shell-surface: var(--clear-panel);
+  --shell-surface-strong: var(--clear-control);
+  --shell-header-bg: var(--clear-bar);
+  --shell-input-bg: var(--clear-control);
+ }
+}
+html[data-ui-shell="immersive"][data-glass="off"] :is(.site-header,.kotoba-bottom-nav) {background-color:var(--clear-bar,var(--paper));}
+/* Dialogs are still translucent, but use extra tint for readability. */
+html[data-ui-shell="immersive"][data-glass] :is(.modal-card,.wallpaper-crop-dialog,.voice-search-dialog,.practice-exit-dialog,.onboarding-card,.japan-passport-modal) {background-color:var(--liquid-dialog) !important;}
+/* A lighter dialog veil shows the page underneath. */
+html[data-ui-shell="immersive"][data-glass="on"] .modal-overlay {background:rgba(8,15,32,.46);}
+html[data-ui-shell="immersive"][data-glass="off"] .modal-overlay {background:rgba(8,15,32,.32);}
+/* Nested panes/rows are translucent in BOTH modes, with no stacked blur. */
+html[data-ui-shell="immersive"] :is(
+ .write-panel > .sub-panel, .write-panel .trace-stage,
+ .category-block .everyday-row, .vocab-section .rad-ex, .vocab-section .vocab-row,
+ .stage-panel .learn-card, .stage-panel .quiz-card, .rm-panel .rm-word-card,
+ .study-panel .learn-card, .category-block .verb-row, .rad-panel .rad-build,
+ .rad-panel .rad-ex, .detail-top .detail-char, .kana-chart .kana-tile
+) {background-color:var(--liquid-inset) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+html[data-ui-shell="immersive"] .trace-stage {background-image:none !important;}
+html[data-ui-shell="immersive"] .rm-stage-nav a {background-color:var(--liquid-panel-strong) !important;}
+/* Scaffolding stays invisible; only its contents get a pane. */
+html[data-ui-shell="immersive"] :is(.everyday-table,.category-tabs,.kana-chart,.trace-block,.rm-path,.rm-nodes,.rm-node-wrap,.mode-toggle,.sub-toggle) {background-color:transparent !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+html[data-ui-shell="immersive"][data-glass="off"] :is(.trace-stage,.rm-stage-nav a,.rm-section-banner,.rad-ex,.everyday-row,.kana-tile,.modal-card) {background-image:none !important;}
+/* Light appearance fallback in browsers without color-mix. */
+@supports not (background:color-mix(in srgb,white 50%,transparent)) {
+ html[data-theme="sakura-journey"][data-glass="off"] {--liquid-panel:rgba(255,253,250,.33);--liquid-panel-strong:rgba(255,253,250,.23);--liquid-inset:rgba(255,253,250,.12);--liquid-dialog:rgba(255,253,250,.70);--liquid-bar:rgba(248,245,239,.35);}
+ html[data-theme="sakura-journey"][data-glass="on"] {--liquid-panel:rgba(255,253,250,.5);--liquid-panel-strong:rgba(255,253,250,.4);--liquid-inset:rgba(255,253,250,.2);--liquid-dialog:rgba(255,253,250,.78);--liquid-bar:rgba(248,245,239,.5);}
+}
+
+
+/* Build 54: consistent inset for glass-framed lesson, word and sentence
+   content. Unlike the Everyday fix, these frames are reused throughout
+   Explore: verbs, kanji/radical detail, conversations, graded stories,
+   dialogue popups and vocabulary. Their original layout wrappers had zero
+   internal padding, which left headings and rows touching rounded rims. */
+html[data-ui-shell="immersive"] :is(
+ .category-block, .vocab-section, .story-body, .story-quiz,
+ .convo, .favorite-list-block
+) {
+ padding: clamp(12px, 1.6vw, 18px);
+}
+/* The same conversation layout is reused inside a narrower word popup. */
+html[data-ui-shell="immersive"] .modal-card .convo {
+ padding: clamp(9px, 1.4vw, 12px);
+}
+html[data-ui-shell="immersive"] .category-block > .category-heading {
+ margin: 0 0 12px;
+ padding: 0 0 9px;
+ line-height: 1.35;
+ overflow-wrap: anywhere;
+}
+html[data-ui-shell="immersive"] :is(
+ .vocab-section, .rad-section, .sentence-section,
+ .story-body, .story-quiz, .convo
+) > :is(h2, h3) {
+ margin-top: 0;
+ overflow-wrap: anywhere;
+}
+/* Zero out trailing row margins where a framed list is itself the card. */
+html[data-ui-shell="immersive"] :is(
+ .story-body > .story-line:last-child,
+ .story-quiz > .quiz-item:last-child,
+ .convo > .convo-line:last-child
+) { margin-bottom: 0; }
+/* Japanese, mixed romaji, and long English strings must not poke outside
+   tiles or modal sheets. Wrap only when the row has no room to fit. */
+html[data-ui-shell="immersive"] :is(
+ .vocab-word, .vocab-reading, .vocab-romaji, .vocab-meaning,
+ .convo-body, .convo-kanji, .convo-hiragana, .convo-romaji,
+ .story-line p, .rad-ex-body, .rad-ex-parts,
+ .modal-word, .modal-reading, .modal-meaning
+) {
+ min-width: 0;
+ overflow-wrap: anywhere;
+}
+
+
+/* Build 55: mobile Everyday modal should stay readable and scrollable, and
+   game answers should keep the active glass appearance instead of reverting
+   to a solid opaque fill. */
+html[data-ui-shell="immersive"] #word-modal-card.word-detail-modal {
+ background-color: var(--liquid-dialog) !important;
+ background-image: none !important;
+}
+html[data-ui-shell="immersive"] #word-modal-card :is(.convo-line,.sentence-usage) {
+ background-color: var(--liquid-panel-strong) !important;
+ -webkit-backdrop-filter: none !important;
+ backdrop-filter: none !important;
+}
+html[data-ui-shell="immersive"] :is(.game-stage,.game-question,.match-tile,.mcq-options .quiz-option) {
+ background-color: var(--liquid-inset) !important;
+ background-image: none !important;
+ -webkit-backdrop-filter: none !important;
+ backdrop-filter: none !important;
+}
+html[data-ui-shell="immersive"] .mcq-options .quiz-option.selected {
+ box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 58%, transparent);
+}
+html[data-ui-shell="immersive"][data-glass="off"] :is(.match-tile,.mcq-options .quiz-option,.game-stage,.game-question) {
+ background-image: none !important;
+}
+@media (max-width: 560px) {
+ html[data-ui-shell="immersive"] #word-modal.is-open {
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+ }
+ html[data-ui-shell="immersive"] #word-modal-card.word-detail-modal {
+  max-width: min(100%, 760px);
+ }
+}
+
+
+/* Build 56: Practice feedback retains the user's glass finish. Feedback is
+   expressed using trims and outlines, never a temporary solid navy slab. */
+html[data-ui-shell="immersive"] :is(
+ .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+ .japan-quiz-options button,.game-pick,.mock-dot,
+ .review-rating button,.level-btn,.count-btn,.mode-sel
+) {
+ background-color: var(--liquid-panel-strong) !important;
+ background-image: var(--liquid-reflection) !important;
+ color: var(--ink) !important;
+ -webkit-backdrop-filter: none !important;
+ backdrop-filter: none !important;
+ box-shadow: inset 0 1px 0 var(--liquid-shine);
+ -webkit-tap-highlight-color: transparent;
+}
+html[data-ui-shell="immersive"] :is(
+ .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+ .japan-quiz-options button,.game-pick,.mock-dot
+):is(.selected,[aria-pressed="true"],.current) {
+ background-color: var(--liquid-panel-strong) !important;
+ background-image: var(--liquid-reflection) !important;
+ color: var(--ink) !important;
+ outline: 2px solid var(--gold);
+ outline-offset: -2px;
+}
+html[data-ui-shell="immersive"] :is(
+ .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+ .japan-quiz-options button
+):is(.correct,.rm-correct,.matched) {
+ border-color: var(--ok-line) !important;
+ box-shadow: inset 0 0 0 1px var(--ok-line), inset 0 1px 0 var(--liquid-shine);
+}
+html[data-ui-shell="immersive"] :is(
+ .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+ .japan-quiz-options button
+):is(.incorrect,.wrong,.rm-wrong) {
+ border-color: var(--seal) !important;
+ box-shadow: inset 0 0 0 1px var(--seal), inset 0 1px 0 var(--liquid-shine);
+}
+/* Match the main game surface to the same visual system. */
+html[data-ui-shell="immersive"] :is(.game-stage,.game-question,.game-finish,.mcq-options,.match-grid) {
+ background-color: transparent !important;
+ background-image: none !important;
+}
+/* JLPT result, timed-mock and practice review surfaces should keep the
+   same glass treatment instead of falling back to opaque navy blocks. */
+html[data-ui-shell="immersive"] :is(#mock-options .quiz-option.selected,.mcq-review-row,.exam-review-card,.mock-toolbar,.mock-dot,.mock-history > div,.mock-breakdown > div) {
+ background-image: var(--liquid-reflection) !important;
+}
+html[data-ui-shell="immersive"] #mock-options .quiz-option.selected {
+ background-color: var(--liquid-panel-strong) !important;
+ border-color: color-mix(in srgb, var(--gold) 54%, var(--liquid-trim)) !important;
+ color: var(--ink) !important;
+ box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 42%, transparent), inset 0 1px 0 var(--liquid-shine) !important;
+ font-weight: 700;
+}
+/* Native Android WebView paints an opaque blue touch-highlight unless we
+   suppress it. App feedback and focus-visible outlines remain available. */
+html[data-ui-shell="immersive"] :is(a,button,[role="button"],input,select,textarea) {
+ -webkit-tap-highlight-color: transparent;
+}
+@media (hover: none) and (pointer: coarse) {
+ html[data-ui-shell="immersive"][data-glass="on"] { --liquid-blur: blur(10px) saturate(125%); }
+ html[data-ui-shell="immersive"] :is(.kotoba-bottom-nav a,.site-header a,.game-pick,.rm-stage-nav a) {transition-duration: 0s !important;}
+}
+
+/* Build 57 audit: an opened word is a reading surface, not a transparent
+   viewport onto other words. Retain translucency in both modes but give
+   the dialog substantially more contrast than the surrounding catalogue. */
+@supports (background: color-mix(in srgb, white 50%, transparent)) {
+ html[data-ui-shell="immersive"][data-glass="on"] #word-modal-card.word-detail-modal,
+ html[data-ui-shell="immersive"][data-glass="on"] :is(.voice-search-dialog,.practice-exit-dialog) {
+  background-color: color-mix(in srgb, var(--card-bg) 89%, transparent) !important;
+ }
+ html[data-ui-shell="immersive"][data-glass="off"] #word-modal-card.word-detail-modal,
+ html[data-ui-shell="immersive"][data-glass="off"] :is(.voice-search-dialog,.practice-exit-dialog) {
+  background-color: color-mix(in srgb, var(--card-bg) 83%, transparent) !important;
+ }
+}
+/* The modal owns its scrolling; the background may not scroll or intercept
+   touches. Restrict the word sheet's height and reserve safe-area space. */
+html[data-ui-shell="immersive"] #word-modal.is-open { overflow-y:auto; overscroll-behavior:contain; }
+html[data-ui-shell="immersive"] #word-modal-card.word-detail-modal {
+ max-height:calc(100dvh - 28px); overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;
+}
+html[data-ui-shell="immersive"] #word-modal-card :is(.convo-line,.sentence-usage) {
+ background-color:var(--liquid-panel-strong) !important;
+ border-color:var(--liquid-trim);
+}
+/* The game board is a layout wrapper. Restore a real glass pane behind
+   questions/results, preventing Japanese glyphs from getting lost on artwork. */
+html[data-ui-shell="immersive"] #game-board > :is(.game-question,.game-finish) {
+ background-color:var(--liquid-panel) !important;
+ background-image:var(--liquid-reflection) !important;
+ border:1px solid var(--liquid-trim);
+ border-radius:22px;
+ padding:clamp(14px,3vw,28px);
+ box-shadow:var(--liquid-shadow);
+ -webkit-backdrop-filter:var(--liquid-blur) !important;
+ backdrop-filter:var(--liquid-blur) !important;
+}
+html[data-ui-shell="immersive"] :is(.game-question,.game-finish) > * {min-width:0;overflow-wrap:anywhere;}
+@media (max-width:700px) {
+ /* The fixed five-tab navigation must not cover the legal/footer controls
+    at the end of a long page. Safe areas also apply to installed WebViews. */
+ html[data-ui-shell="immersive"] .site-footer {
+  padding-bottom:calc(112px + env(safe-area-inset-bottom, 0px));
+ }
+ html[data-ui-shell="immersive"] .game-stage {padding:10px 0 18px;}
+ html[data-ui-shell="immersive"] :is(.game-big,.speaking-jp,.quiz-sentence,.modal-word) {
+  overflow-wrap:anywhere;word-break:normal;
+ }
+ html[data-ui-shell="immersive"] #word-modal-card.word-detail-modal {
+  max-height:calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
+ }
+}
+/* Avoid a blank/ghost word sheet during the first composited frame on
+   touch devices. Desktop keeps the existing short entry animation. */
+@media (hover:none) and (pointer:coarse) {
+ html[data-ui-shell="immersive"] #word-modal-card.word-detail-modal {animation:none !important;}
+}
+/* Fixed lesson dialogs must be able to stack above the sticky header. */
+html[data-ui-shell="immersive"] body.word-modal-open .site-main {z-index:950;}
+@supports selector(body:has(.modal-overlay:not([hidden]))) {
+ html[data-ui-shell="immersive"] body:has(.site-main .modal-overlay:not([hidden])) .site-main {z-index:950;}
+}
+
+
+/* BUILD 59 — JLPT/Kanji meaning quiz: the real FINAL answer-review screen.
+   This is the #mcq-panel-results created by jlpt_practice.js and
+   kanji_practice.js, not the question buttons or the intro tiles.
+   One frosted outer pane avoids per-row GPU blurs on 10–60 answer lists;
+   inset rows follow the current glass setting and stay see-through. */
+html[data-ui-shell="immersive"] #mcq-stage {
+ width:100%;max-width:1040px;margin-inline:auto;min-width:0;
+}
+html[data-ui-shell="immersive"] #mcq-stage #mcq-panel-results {
+ width:100%;max-width:960px;margin-inline:auto;
+ background-color:var(--liquid-panel) !important;
+ background-image:var(--liquid-reflection) !important;
+ border:1px solid var(--liquid-trim) !important;
+ border-radius:22px;
+ box-shadow:var(--liquid-shadow) !important;
+ -webkit-backdrop-filter:var(--liquid-blur) !important;
+ backdrop-filter:var(--liquid-blur) !important;
+}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review {
+ width:100%;max-width:none;margin:18px auto 24px;
+ display:grid;grid-template-columns:minmax(0,1fr);
+ gap:10px;min-width:0;
+}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-row {
+ display:grid;
+ grid-template-columns:clamp(44px,6vw,64px) minmax(0,1fr) 26px;
+ align-items:center;
+ gap:clamp(10px,2vw,22px);
+ padding:clamp(12px,1.6vw,16px);
+ width:100%;min-width:0;
+ border:1px solid var(--liquid-trim);
+ border-radius:16px;
+ background-color:var(--liquid-panel-strong) !important;
+ background-image:var(--liquid-reflection) !important;
+ box-shadow:inset 0 1px 0 var(--liquid-shine);
+ -webkit-backdrop-filter:none !important;
+ backdrop-filter:none !important;
+}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-row.right {border-color:var(--ok-line);}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-row.wrong {border-color:var(--seal);}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-kanji {
+ grid-column:1;width:auto;min-width:0;max-width:100%;
+ font-size:clamp(26px,3vw,34px);line-height:1.35;text-align:center;
+}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-body {
+ grid-column:2;min-width:0;text-align:left;
+ font-size:clamp(13px,1.3vw,15px);line-height:1.55;
+}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-body > * {
+ max-width:100%;white-space:normal;overflow-wrap:anywhere;
+}
+html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-mark {
+ grid-column:3;grid-row:1;justify-self:center;align-self:center;
+ font-size:22px;min-width:0;
+}
+/* The sibling JLPT exam-Q&A and timed-mock final review rows use the
+   same readable inset finish. Their wrapper carries the glass blur. */
+html[data-ui-shell="immersive"] :is(#exam-panel-results,#mock-results) .exam-review-card,
+html[data-ui-shell="immersive"] #mock-results .learner-stat {
+ background-color:var(--liquid-panel-strong) !important;
+ background-image:var(--liquid-reflection) !important;
+ border-color:var(--liquid-trim);
+ -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+ overflow-wrap:anywhere;min-width:0;
+}
+html[data-ui-shell="immersive"] :is(#exam-panel-results,#mock-results) .exam-review {
+ width:100%;max-width:none;margin-inline:auto;
+}
+html[data-ui-shell="immersive"] :is(#exam-panel-results,#mock-results) .exam-review-card {
+ text-align:left;padding:clamp(12px,2vw,18px);
+}
+@media(max-width:560px) {
+ html[data-ui-shell="immersive"] #mcq-stage #mcq-panel-results {padding:14px 10px;}
+ html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-row {
+  grid-template-columns:40px minmax(0,1fr) 22px;
+  padding:10px 9px;gap:9px;
+ }
+ html[data-ui-shell="immersive"] #mcq-panel-results .mcq-review-mark {
+  grid-column:3;grid-row:1;
+ }
+}
+
+
+/* Build 60 — search controls. Keep the input and speech button in independent
+   flex cells, instead of overlaying the placeholder/text with an absolute mic.
+   The enclosing search control (not two overlapping rectangles) takes its tint
+   from the user's current Liquid Glass / Clear Glass selection. */
+html[data-ui-shell="immersive"] .header-search {
+  flex: 1 1 340px;
+  max-width: 430px;
+  min-width: 0;
+  min-height: 44px;
+  align-items: stretch;
+  background-color: var(--liquid-panel-strong) !important;
+  border-color: var(--liquid-trim) !important;
+}
+html[data-ui-shell="immersive"] .header-search > input[name="q"] {
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 10px 12px !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--ink) !important;
+}
+html[data-ui-shell="immersive"] .header-search > button[type="submit"] {
+  flex: 0 0 44px;
+  width: 44px;
+  padding: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-left: 1px solid var(--liquid-trim) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+}
+html[data-ui-shell="immersive"] .header-search > button[type="submit"]:hover {
+  background-color: color-mix(in srgb, var(--gold) 15%, transparent) !important;
+}
+html[data-ui-shell="immersive"] :is(.header-search > input, .catalog-search-field > input)::placeholder {
+  color: var(--ink-soft);
+  opacity: .95;
+}
+html[data-ui-shell="immersive"] .catalog-search-field.voice-field {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  width: min(100%, 560px);
+  max-width: 560px;
+  min-width: 0;
+  min-height: 48px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--liquid-trim);
+  border-radius: 14px;
+  background-color: var(--liquid-panel-strong);
+  background-image: var(--liquid-reflection);
+  box-shadow: inset 0 1px 0 var(--liquid-shine);
+}
+html[data-ui-shell="immersive"] .catalog-search-field > input.filter-input {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 11px 14px !important;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--ink) !important;
+}
+html[data-ui-shell="immersive"] .catalog-search-field > .voice-inline-btn {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  flex: 0 0 46px;
+  width: 46px;
+  height: auto;
+  min-height: 44px;
+  min-width: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+  margin: 0;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-left: 1px solid var(--liquid-trim) !important;
+  border-radius: 0 !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+  font-size: 19px !important;
+}
+html[data-ui-shell="immersive"] .catalog-search-field > .voice-inline-btn:hover,
+html[data-ui-shell="immersive"] .catalog-search-field > .voice-inline-btn:focus-visible {
+  background-color: color-mix(in srgb, var(--gold) 15%, transparent) !important;
+}
+html[data-ui-shell="immersive"] .catalog-search-field:focus-within,
+html[data-ui-shell="immersive"] .header-search:focus-within {
+  border-color: var(--gold) !important;
+  outline: 2px solid color-mix(in srgb, var(--gold) 38%, transparent);
+  outline-offset: 2px;
+}
+html[data-ui-shell="immersive"] .kanji-filter-row > .catalog-search-field.voice-field {
+  flex: 1 1 440px;
+  margin-top: 18px;
+}
+@media (max-width: 700px) {
+  html[data-ui-shell="immersive"] .catalog-search-field.voice-field {
+    width: 100%;
+    max-width: 100%;
+  }
+  html[data-ui-shell="immersive"] .kanji-filter-row > .catalog-search-field.voice-field {
+    flex: 1 1 100%;
+  }
+}
+
+
+/* =====================================================================
+   Build 62 — microphone placement, header/nav alignment, answered glass
+   ===================================================================== */
+
+/* 1. Header microphone lives INSIDE the search bar: [ text | mic | search ].
+      It is a normal flex cell, never an overlay, so it cannot cover text. */
+html[data-ui-shell="immersive"] .header-search > .voice-search-global-btn {
+  position: static;
+  flex: 0 0 42px;
+  width: 42px;
+  height: auto;
+  min-height: 42px;
+  margin: 0;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--ink-soft) !important;
+  font-size: 17px;
+  transform: none;
+  animation: none;
+}
+html[data-ui-shell="immersive"] .header-search > .voice-search-global-btn:hover,
+html[data-ui-shell="immersive"] .header-search > .voice-search-global-btn:focus-visible {
+  transform: none;
+  color: var(--ink) !important;
+  background-color: color-mix(in srgb, var(--gold) 15%, transparent) !important;
+}
+html[data-ui-shell="immersive"] .header-search > .voice-search-global-btn.listening {
+  color: var(--seal) !important;
+  background-color: color-mix(in srgb, var(--seal) 16%, transparent) !important;
+}
+html[data-ui-shell="immersive"] .header-search > input[name="q"] { padding-right: 4px !important; }
+html[data-ui-shell="immersive"] .header-search { flex: 1 1 300px; max-width: 400px; }
+
+/* The outside copy only exists for phones, where the search bar is hidden. */
+.voice-outside-search { display: none; }
+@media (max-width: 700px) {
+  html[data-ui-shell="immersive"] .voice-outside-search { display: inline-grid; }
+}
+
+/* 2. Quick-search on Home and the Search page: same single glass container,
+      with the mic in its own cell so the placeholder is never clipped. */
+html[data-ui-shell="immersive"] .hero-search { align-items: stretch; }
+html[data-ui-shell="immersive"] .hero-search .voice-field {
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 48px;
+  overflow: hidden;
+  border: 1px solid var(--liquid-trim);
+  border-radius: 14px;
+  background-color: var(--liquid-panel-strong);
+  background-image: var(--liquid-reflection);
+  box-shadow: inset 0 1px 0 var(--liquid-shine);
+}
+html[data-ui-shell="immersive"] .hero-search .voice-field > input {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 11px 14px !important;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--ink) !important;
+  text-overflow: ellipsis;
+}
+html[data-ui-shell="immersive"] .hero-search .voice-field > input::placeholder { color: var(--ink-soft); opacity: .95; }
+html[data-ui-shell="immersive"] .hero-search .voice-field > .voice-inline-btn {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  flex: 0 0 46px;
+  width: 46px;
+  min-width: 46px;
+  height: auto;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-left: 1px solid var(--liquid-trim) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--ink) !important;
+  font-size: 19px !important;
+}
+html[data-ui-shell="immersive"] .hero-search .voice-field > .voice-inline-btn:hover,
+html[data-ui-shell="immersive"] .hero-search .voice-field > .voice-inline-btn:focus-visible {
+  background-color: color-mix(in srgb, var(--gold) 15%, transparent) !important;
+}
+html[data-ui-shell="immersive"] .hero-search .voice-field:focus-within {
+  border-color: var(--gold) !important;
+  outline: 2px solid color-mix(in srgb, var(--gold) 38%, transparent);
+  outline-offset: 2px;
+}
+html[data-ui-shell="immersive"] .hero-search > button[type="submit"] { flex: 0 0 auto; min-height: 48px; white-space: nowrap; }
+html[data-ui-shell="immersive"] .hero-search.search-page-form { max-width: 560px; width: 100%; }
+
+/* 3. Top navigation: every link has the same box so the active pill, the
+      call-to-action and plain links share one baseline. */
+html[data-ui-shell="immersive"] .site-nav { gap: 4px; align-items: center; }
+html[data-ui-shell="immersive"] .site-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 13px;
+  border-bottom: 0;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+html[data-ui-shell="immersive"] .site-nav a.nav-cta { padding: 6px 16px; }
+html[data-ui-shell="immersive"] .site-header { align-items: center; }
+
+/* 4. Timed mock toolbar: the clock never breaks across lines. */
+html[data-ui-shell="immersive"] .mock-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 12px;
+}
+html[data-ui-shell="immersive"] .mock-toolbar > #mock-progress { min-width: 0; line-height: 1.35; text-align: left; }
+html[data-ui-shell="immersive"] .mock-toolbar > #mock-timer {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+}
+html[data-ui-shell="immersive"] .mock-toolbar > #mock-flag { white-space: nowrap; align-self: center; }
+html[data-ui-shell="immersive"] .mock-selection { text-align: center; }
+
+/* 5. Practice: a chosen / answered item keeps the glass finish AND shows its
+      state as a tinted translucent pane (not a solid fill, not an outline only).
+      selected = gold, correct = green, wrong = red. */
+html[data-ui-shell="immersive"] :is(
+  .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+  .japan-quiz-options button,.japan-situation-options button,.game-pick
+):is(.selected,[aria-pressed="true"],.current) {
+  background-color: color-mix(in srgb, var(--gold) 20%, var(--liquid-panel-strong)) !important;
+  border-color: color-mix(in srgb, var(--gold) 70%, var(--liquid-trim)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent), inset 0 1px 0 var(--liquid-shine) !important;
+  outline: 0 !important;
+}
+html[data-ui-shell="immersive"] :is(
+  .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+  .japan-quiz-options button,.japan-situation-options button
+):is(.correct,.rm-correct,.matched) {
+  background-color: color-mix(in srgb, var(--ok-line) 20%, var(--liquid-panel-strong)) !important;
+  border-color: var(--ok-line) !important;
+  color: var(--ink) !important;
+}
+html[data-ui-shell="immersive"] :is(
+  .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+  .japan-quiz-options button,.japan-situation-options button
+):is(.incorrect,.wrong,.rm-wrong) {
+  background-color: color-mix(in srgb, var(--seal) 18%, var(--liquid-panel-strong)) !important;
+  border-color: var(--seal) !important;
+  color: var(--ink) !important;
+}
+html[data-ui-shell="immersive"][data-glass="on"] :is(
+  .quiz-option,.quiz-choice,.rm-option,.exam-option,.match-tile,
+  .japan-quiz-options button,.japan-situation-options button
+):is(.selected,.correct,.rm-correct,.matched,.incorrect,.wrong,.rm-wrong) {
+  -webkit-backdrop-filter: var(--liquid-blur) !important;
+  backdrop-filter: var(--liquid-blur) !important;
+}
+
+/* Review screens shown AFTER a practice round is solved (your answer / the
+   correct answer): tinted glass rows, aligned in one stable grid. */
+html[data-ui-shell="immersive"] .mcq-review-row,
+html[data-ui-shell="immersive"] .exam-review-card {
+  background-color: var(--liquid-panel-strong) !important;
+  background-image: var(--liquid-reflection) !important;
+  box-shadow: inset 0 1px 0 var(--liquid-shine);
+}
+html[data-ui-shell="immersive"] .mcq-review-row.right,
+html[data-ui-shell="immersive"] .exam-review-card.correct-review {
+  background-color: color-mix(in srgb, var(--ok-line) 14%, var(--liquid-panel-strong)) !important;
+  border-color: var(--ok-line) !important;
+}
+html[data-ui-shell="immersive"] .mcq-review-row.wrong,
+html[data-ui-shell="immersive"] .exam-review-card.missed-review {
+  background-color: color-mix(in srgb, var(--seal) 12%, var(--liquid-panel-strong)) !important;
+  border-color: var(--seal) !important;
+}
+html[data-ui-shell="immersive"][data-glass="on"] :is(.mcq-review-row,.exam-review-card) {
+  -webkit-backdrop-filter: var(--liquid-blur);
+  backdrop-filter: var(--liquid-blur);
+}
+html[data-ui-shell="immersive"] .mcq-review-answer,
+html[data-ui-shell="immersive"] .mcq-review-correct { text-align: left; overflow-wrap: anywhere; }
+html[data-ui-shell="immersive"] .mcq-review-mark { justify-self: center; text-align: center; }
+
+/* Answer feedback panel + the mascot reaction popup are glass too. */
+html[data-ui-shell="immersive"] .exam-feedback {
+  background-color: var(--liquid-panel-strong);
+  background-image: var(--liquid-reflection);
+  border: 1px solid var(--liquid-trim);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 var(--liquid-shine);
+}
+html[data-ui-shell="immersive"] .result-banner.correct {
+  background: color-mix(in srgb, var(--ok-line) 18%, var(--liquid-panel-strong));
+}
+html[data-ui-shell="immersive"] .result-banner.incorrect {
+  background: color-mix(in srgb, var(--seal) 16%, var(--liquid-panel-strong));
+}
+html[data-ui-shell="immersive"] .reaction-overlay {
+  background: color-mix(in srgb, var(--scrim) 70%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+html[data-ui-shell="immersive"] .reaction-card {
+  background-color: color-mix(in srgb, var(--card-bg) 62%, transparent);
+  background-image: var(--liquid-reflection);
+  border: 1px solid var(--liquid-trim);
+  box-shadow: var(--liquid-shadow, var(--shadow-lg));
+}
+html[data-ui-shell="immersive"][data-glass="on"] .reaction-card {
+  -webkit-backdrop-filter: var(--liquid-blur);
+  backdrop-filter: var(--liquid-blur);
+}
+
+/* Build 63 — detail popups (Hiragana/Katakana, Kanji, Verbs, Everyday) */
+body.kotoba-sheet-open .kotoba-bottom-nav { display: none !important; }
+html[data-ui-shell="immersive"] .modal-card .modal-close {
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--liquid-trim) !important;
+  border-radius: 50% !important;
+  background-color: var(--liquid-panel-strong) !important;
+  background-image: none !important;
+  box-shadow: inset 0 1px 0 var(--liquid-shine) !important;
+  color: var(--ink) !important;
+  line-height: 1;
+}
+
+
+/* =====================================================================
+   Build 64 — detail pages: one consistent inner spacing system
+   (kanji, radical, story, conversation, vocabulary, sentence cards).
+   Bullets stay INSIDE their box; text never touches a rounded rim.
+   ===================================================================== */
+html[data-ui-shell="immersive"] :is(
+  .rad-section, .vocab-section, .sentence-section, .rad-panel
+) {
+  padding: clamp(16px, 2.4vw, 24px);
+}
+html[data-ui-shell="immersive"] :is(.rad-section, .vocab-section, .sentence-section) > h2 {
+  margin: 0 0 14px;
+  line-height: 1.3;
+}
+
+/* "How to read": bullets sit inside the box with room for the marker. */
+html[data-ui-shell="immersive"] .rad-read-list {
+  list-style: disc outside;
+  margin: 0;
+  padding: 16px 20px 16px 40px !important;
+  line-height: 1.7;
+}
+html[data-ui-shell="immersive"] .rad-read-list > li { padding-left: 2px; overflow-wrap: anywhere; }
+html[data-ui-shell="immersive"] .rad-read-list > li + li { margin-top: 14px; }
+html[data-ui-shell="immersive"] .rad-read-list > li::marker { color: var(--gold); }
+html[data-ui-shell="immersive"] .rad-read-ex {
+  display: block;
+  margin: 5px 0 0;
+  padding-left: 2px;
+  line-height: 1.6;
+}
+
+/* Radical explanation blocks: breathing room inside and between boxes. */
+html[data-ui-shell="immersive"] :is(.rad-origin, .rad-tip, .rad-build) {
+  padding: 14px 18px;
+  margin: 14px 0 0;
+  line-height: 1.65;
+}
+html[data-ui-shell="immersive"] .rad-build p { margin: 0 0 8px; line-height: 1.65; }
+html[data-ui-shell="immersive"] .rad-build p:last-child { margin-bottom: 0; }
+html[data-ui-shell="immersive"] .rad-panel-row { gap: 18px; align-items: flex-start; }
+html[data-ui-shell="immersive"] .rad-panel-body { min-width: 0; }
+html[data-ui-shell="immersive"] .rad-panel-body p { margin: 0 0 8px; line-height: 1.6; }
+html[data-ui-shell="immersive"] .rad-panel-body p:last-child { margin-bottom: 0; }
+
+/* "Commonly used" note under the example sentence. */
+html[data-ui-shell="immersive"] .sentence-usage {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  line-height: 1.6;
+  text-align: left;
+}
+html[data-ui-shell="immersive"] .sentence-card > p { overflow-wrap: anywhere; }
+
+/* Vocabulary rows and radical example rows: padded, spaced, vertically centred. */
+html[data-ui-shell="immersive"] .vocab-table { gap: 10px; }
+html[data-ui-shell="immersive"] .vocab-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 1.8fr);
+  align-items: center;
+  padding: 14px 18px;
+}
+html[data-ui-shell="immersive"] .vocab-reading { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+html[data-ui-shell="immersive"] .vocab-section .rad-ex {
+  padding: 14px 18px;
+  margin: 0 0 10px;
+  gap: 16px;
+  border-bottom: 1px solid var(--liquid-trim);
+}
+html[data-ui-shell="immersive"] .vocab-section .rad-ex:last-child { margin-bottom: 0; }
+html[data-ui-shell="immersive"] .rad-ex-body { min-width: 0; }
+html[data-ui-shell="immersive"] .rad-ex-parts { line-height: 1.8; }
+html[data-ui-shell="immersive"] .rad-ex-parts span { padding: 2px 8px; }
+html[data-ui-shell="immersive"] .rad-ex-read { row-gap: 4px; line-height: 1.55; }
+@media (max-width: 700px) {
+  html[data-ui-shell="immersive"] .vocab-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    row-gap: 8px;
+    padding: 14px 16px;
+  }
+  html[data-ui-shell="immersive"] .rad-read-list { padding: 14px 14px 14px 34px !important; }
+  html[data-ui-shell="immersive"] .vocab-section .rad-ex { padding: 12px 14px; }
+}
+
+
+/* =====================================================================
+   Build 65 — test / practice / timed-test result screens
+   Final answers, notes and score tiles are aligned inside their boxes.
+   ===================================================================== */
+/* Centered result panels: their notes are centred too (the note has a
+   52ch max-width, which used to leave it hugging the left of the card). */
+html[data-ui-shell="immersive"] :is(
+  #exam-panel-results, #mcq-panel-results, #mock-results, #placement-done, #panel-done
+) { text-align: center; }
+html[data-ui-shell="immersive"] :is(
+  #exam-panel-results, #mcq-panel-results, #mock-results, #placement-done, #panel-done
+) .practice-note {
+  max-width: min(52ch, 100%);
+  margin-inline: auto;
+  text-align: center;
+  line-height: 1.6;
+}
+/* ...but the review cards themselves read left-to-right and stay left aligned. */
+html[data-ui-shell="immersive"] :is(.exam-review-card, .mcq-review-row, .mock-review > *) { text-align: left; }
+html[data-ui-shell="immersive"] .exam-review-card { padding: 16px 18px; }
+html[data-ui-shell="immersive"] .exam-review-card > * { max-width: 100%; overflow-wrap: anywhere; }
+html[data-ui-shell="immersive"] .exam-review-card > p { margin: 8px 0; line-height: 1.6; }
+
+/* Placement result: clear gaps between recommendation, note and button. */
+html[data-ui-shell="immersive"] #placement-done > * { margin-left: auto; margin-right: auto; }
+html[data-ui-shell="immersive"] #placement-done #placement-recommendation { margin-top: 14px; line-height: 1.35; }
+html[data-ui-shell="immersive"] #placement-done #placement-note {
+  margin-top: 12px;
+  max-width: 46ch;
+  line-height: 1.65;
+}
+html[data-ui-shell="immersive"] #placement-done #placement-go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin-top: 22px;
+  margin-bottom: 4px;
+}
+
+/* Mock score tiles: an odd last tile spans the row instead of dangling. */
+html[data-ui-shell="immersive"] .mock-breakdown > div { text-align: center; }
+@media (max-width: 700px) {
+  html[data-ui-shell="immersive"] .mock-breakdown > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+
+/* =====================================================================
+   Build 66 — search fields on Grammar, Radicals, Write and Japan Explorer
+   The mic now lives inside the same glass field as the text (it used to be
+   pinned to the far edge of the page, hundreds of pixels from the input).
+   ===================================================================== */
+html[data-ui-shell="immersive"] .japan-search-wrap > .catalog-search-field.voice-field,
+html[data-ui-shell="immersive"] .kanji-write-controls > .catalog-search-field.voice-field {
+  margin-top: 0;
+  width: 100%;
+  max-width: 100%;
+}
+html[data-ui-shell="immersive"] .rad-section > .catalog-search-field.voice-field { margin: 4px 0 18px; }
+html[data-ui-shell="immersive"] .page-head + .catalog-search-field.voice-field { margin: 4px 0 18px; }
+html[data-ui-shell="immersive"] .page-head + .catalog-search-field.voice-field + .level-options { margin-top: 0; }
+html[data-ui-shell="immersive"] .page-head > .catalog-search-field.voice-field { margin: 18px 0 0; }
+html[data-ui-shell="immersive"] #grammar-levels {
+  justify-content: flex-start;
+  margin: 16px 0 0;
+  padding: 0;
+  gap: 8px;
+}
+
+/* Build 72 — JLPT N5–N1 Exam Q&A explanation readability.
+   Each question uses the same client-side renderer for inline feedback
+   and for the review at the end. Keep one left-aligned reading column,
+   clear space above ruby/furigana, and a legible translucent inset.
+   Never apply a second backdrop blur to nested sentence text. */
+html[data-ui-shell="immersive"] :is(
+  #exam-feedback-note.exam-furigana,
+  #exam-review .exam-review-explanation.exam-furigana
+) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 16px 0 18px;
+  padding: clamp(14px, 2vw, 20px) !important;
+  border: 1px solid var(--liquid-trim);
+  border-radius: 14px;
+  background-color: var(--liquid-panel-strong) !important;
+  background-image: none !important;
+  color: var(--ink);
+  text-align: left;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: inset 0 1px 0 var(--liquid-shine);
+}
+html[data-ui-shell="immersive"][data-glass="on"] :is(
+  #exam-feedback-note.exam-furigana,
+  #exam-review .exam-review-explanation.exam-furigana
+) {background-color: color-mix(in srgb,var(--card-bg) 64%,transparent) !important;}
+html[data-ui-shell="immersive"][data-glass="off"] :is(
+  #exam-feedback-note.exam-furigana,
+  #exam-review .exam-review-explanation.exam-furigana
+) {background-color: color-mix(in srgb,var(--card-bg) 50%,transparent) !important;}
+html[data-ui-shell="immersive"] :is(#exam-feedback-note,#exam-review .exam-review-card) .exam-feedback-label {
+  display: block;
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 700;
+  letter-spacing: .055em;
+  text-align: left;
+}
+html[data-ui-shell="immersive"] :is(#exam-feedback-explanation,#exam-review .exam-review-explanation) {
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+html[data-ui-shell="immersive"] :is(#exam-feedback-explanation,#exam-review .exam-review-explanation) .exam-explanation-line {
+  display: block;
+  margin: 0;
+  padding: 7px 0;
+  font-family: var(--serif-jp);
+  font-size: clamp(16px, 1.45vw, 18px);
+  font-weight: 400;
+  line-height: 2.55;
+  letter-spacing: .02em;
+  color: var(--ink);
+  text-align: left;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+html[data-ui-shell="immersive"] :is(#exam-feedback-explanation,#exam-review .exam-review-explanation) .exam-explanation-line + .exam-explanation-line {
+  margin-top: 10px;
+  border-top: 1px solid var(--liquid-trim);
+}
+html[data-ui-shell="immersive"] :is(#exam-feedback-explanation,#exam-review .exam-review-explanation) ruby {
+  ruby-position: over;
+  ruby-align: center;
+  margin-inline: .10em;
+  white-space: nowrap;
+  font-size: inherit;
+}
+html[data-ui-shell="immersive"] :is(#exam-feedback-explanation,#exam-review .exam-review-explanation) rt {
+  font-family: var(--serif-jp);
+  font-size: .62em;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: .01em;
+  color: var(--ink-soft);
+}
+html[data-ui-shell="immersive"] #exam-panel-quiz .exam-feedback {
+  min-width: 0;
+  margin-top: 20px;
+  padding: clamp(15px, 2.2vw, 22px) !important;
+  text-align: left;
+}
+html[data-ui-shell="immersive"] #exam-panel-quiz :is(.exam-feedback-title,.exam-feedback-answer) {
+  display: block;
+  max-width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+}
+html[data-ui-shell="immersive"] #exam-panel-quiz .exam-feedback-answer {
+  font-size: clamp(15px, 1.35vw, 17px);
+  margin: 6px 0 16px;
+}
+html[data-ui-shell="immersive"] #exam-panel-quiz #exam-feedback-listen {margin-bottom: 2px;}
+html[data-ui-shell="immersive"] #exam-review .exam-review-card {
+  min-width: 0;
+  padding: clamp(15px, 2vw, 20px);
+}
+html[data-ui-shell="immersive"] #exam-review .exam-review-card > :is(.exam-review-question,.exam-review-wrong,.exam-review-correct) {
+  line-height: 1.8;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  html[data-ui-shell="immersive"] :is(#exam-feedback-note.exam-furigana,#exam-review .exam-review-explanation.exam-furigana) {
+    padding: 14px !important;
+  }
+  html[data-ui-shell="immersive"] :is(#exam-feedback-explanation,#exam-review .exam-review-explanation) .exam-explanation-line {
+    font-size: 16px;
+    line-height: 2.65;
+  }
+}
+
+
+/* ================================================================
+   Build 73 — finish consistency, actual active quizzes, writing insets
+   ================================================================
+   Earlier :has(.quiz-card) rules discarded the OUTER frost while the
+   inner .stage-panel .quiz-card had only 16% tint and blur:none.
+   That made the wallpaper legible through quiz text even with Glass ON.
+   Keep one blurred outer surface and a readable, blur-free inner surface.
+   Avoid applying an expensive blur to every vocabulary/answer row.
+*/
+@supports (background: color-mix(in srgb, white 50%, transparent)) {
+  html[data-ui-shell="immersive"][data-glass="on"] {
+    --liquid-panel: color-mix(in srgb, var(--card-bg) 78%, transparent);
+    --liquid-panel-strong: color-mix(in srgb, var(--card-bg) 84%, transparent);
+    --liquid-inset: color-mix(in srgb, var(--card-bg) 88%, transparent);
+    --liquid-dialog: color-mix(in srgb, var(--card-bg) 93%, transparent);
+    --liquid-bar: color-mix(in srgb, var(--paper) 80%, transparent);
+  }
+  html[data-ui-shell="immersive"][data-glass="off"] {
+    --liquid-panel: color-mix(in srgb, var(--card-bg) 23%, transparent);
+    --liquid-panel-strong: color-mix(in srgb, var(--card-bg) 26%, transparent);
+    --liquid-inset: color-mix(in srgb, var(--card-bg) 17%, transparent);
+    --liquid-dialog: color-mix(in srgb, var(--card-bg) 57%, transparent);
+    --liquid-bar: color-mix(in srgb, var(--paper) 26%, transparent);
+  }
+}
+/* Apply the user's chosen glass mode to the pane that actually owns
+   the text and controls of a test, including when its content changes. */
+html[data-ui-shell="immersive"] :is(
+  .practice-stage > .stage-panel,
+  .exam-practice-stage > .exam-stage-panel,
+  .mock-stage > .stage-panel,
+  #speaking-stage > .stage-panel,
+  .review-stage > .stage-panel,
+  .practice-stage > #mcq-panel-quiz,
+  .practice-stage > #mcq-panel-results,
+  .game-stage,
+  .search-entry-panel,
+  .search-prefix-results
+) {
+  min-width: 0;
+  max-width: 100%;
+  background-color: var(--liquid-panel) !important;
+  background-image: var(--liquid-reflection) !important;
+  border: 1px solid var(--liquid-trim) !important;
+  border-radius: 22px;
+  box-shadow: var(--liquid-shadow) !important;
+  -webkit-backdrop-filter: var(--liquid-blur) !important;
+  backdrop-filter: var(--liquid-blur) !important;
+}
+/* A single blurred parent is enough: inset surfaces are visibly frosted
+   without multiplying blur layers by 20, 40 or 60 questions. */
+html[data-ui-shell="immersive"] :is(
+  .stage-panel .learn-card,.stage-panel .quiz-card,.stage-panel .flash-face,
+  .stage-panel .review-card,.stage-panel .speaking-card,
+  .stage-panel .explain-card,.stage-panel .sentence-card,
+  .stage-panel .exam-passage,.stage-panel .exam-feedback,
+  .stage-panel .exam-feedback-note,.stage-panel .exam-review-card,
+  .stage-panel .mcq-review-row,.game-stage .game-question,
+  .game-stage .match-tile,.game-stage .quiz-option,
+  .write-panel > .sub-panel,.write-panel .trace-stage,
+  .write-panel .write-output,.write-panel .kb-key
+) {
+  background-color: var(--liquid-inset) !important;
+  background-image: var(--liquid-reflection) !important;
+  border-color: var(--liquid-trim);
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Preserve result-state borders even with the stronger inset. */
+html[data-ui-shell="immersive"] :is(.mcq-review-row.right,.quiz-option.correct,.exam-option.correct) { border-color:var(--ok-line) !important; }
+html[data-ui-shell="immersive"] :is(.mcq-review-row.wrong,.quiz-option.incorrect,.exam-option.incorrect) { border-color:var(--seal) !important; }
+/* Previously hard-coded the summary dashboard tile as transparent. With
+   ON it now reads as frosted glass, while OFF stays visibly clear. */
+html[data-ui-shell="immersive"] :is(
+  .home-quick-actions a,.learner-stat,.home-stat,.home-companion,
+  .focus-card,.continue-card,.japan-passport-card,.japan-hero,
+  .rm-panel,.flashcard,.review-card,.speaking-result,.exam-review-card
+) {
+  background-color: var(--liquid-panel-strong) !important;
+  background-image: var(--liquid-reflection) !important;
+  border-color: var(--liquid-trim);
+}
+/* Explicitly cover dynamically inserted feedback. The inline explanation
+   stays clear of its parent blur, with stronger contrast in ON mode. */
+html[data-ui-shell="immersive"] :is(
+  #exam-panel-quiz .exam-feedback,
+  #exam-feedback-note.exam-furigana,
+  #exam-review .exam-review-explanation.exam-furigana,
+  .explain-card,.result-banner,.quiz-feedback,
+  #speaking-result,.review-answer,.exam-review-explanation
+) {
+  background-color: var(--liquid-inset) !important;
+  background-image: var(--liquid-reflection) !important;
+  border-color: var(--liquid-trim);
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-ui-shell="immersive"][data-glass="on"] :is(
+  #exam-feedback-note.exam-furigana,
+  #exam-review .exam-review-explanation.exam-furigana
+) {
+  background-color: var(--liquid-inset) !important;
+}
+/* Existing button-state handling still owns success/wrong colors. */
+html[data-ui-shell="immersive"] :is(.exam-feedback,.explain-card,.exam-review-card) :is(p,div,span,rt) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html[data-ui-shell="immersive"] :is(.exam-feedback,.explain-card,.quiz-card,.mcq-review-body) {
+  line-height: 1.6;
+}
+/* [hidden] must win against custom display declarations used by feedback. */
+html[data-ui-shell="immersive"] :is(#exam-feedback-note,#exam-feedback,#exam-review,.stage-panel,.sub-panel)[hidden] { display: none !important; }
+
+/* Writing Practice: align target glyph/reading, character counter and
+   trace controls inside the same padded surface on any screen. */
+html[data-ui-shell="immersive"] .write-panel {
+  min-width: 0;
+  padding: clamp(14px, 2.2vw, 24px);
+}
+html[data-ui-shell="immersive"] .write-panel > .sub-panel {
+  min-width: 0;
+  width: 100%;
+  padding: clamp(12px, 2vw, 20px);
+  border-radius: 18px;
+}
+html[data-ui-shell="immersive"] .write-panel .trace-block {min-width:0;width:100%;margin:0;}
+html[data-ui-shell="immersive"] .write-panel .trace-head {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  margin:0 0 16px;
+}
+html[data-ui-shell="immersive"] .write-panel .trace-target {
+  min-width:0;max-width:100%;display:flex;align-items:baseline;
+  flex-wrap:wrap;gap:6px 10px;
+}
+html[data-ui-shell="immersive"] .write-panel .trace-target-char {line-height:1.25;flex:0 0 auto;}
+html[data-ui-shell="immersive"] .write-panel .trace-target-meaning {min-width:0;line-height:1.55;overflow-wrap:anywhere;}
+html[data-ui-shell="immersive"] .write-panel .trace-progress {white-space:nowrap;line-height:1.5;text-align:right;}
+html[data-ui-shell="immersive"] .write-panel .trace-stage {width:min(320px,100%);aspect-ratio:1;margin:0 auto 16px;}
+html[data-ui-shell="immersive"] .write-panel .trace-controls {align-items:stretch;gap:8px;margin:0 0 20px;}
+html[data-ui-shell="immersive"] .write-panel .trace-controls button {min-height:40px;line-height:1.3;}
+html[data-ui-shell="immersive"] .write-panel .trace-picker-label {line-height:1.55;margin:10px 0;}
+html[data-ui-shell="immersive"] .write-panel .write-output-row {min-width:0;flex-wrap:wrap;align-items:stretch;}
+html[data-ui-shell="immersive"] .write-panel .write-output-row input {flex:1 1 200px;min-width:0;}
+html[data-ui-shell="immersive"] .write-panel .write-output {
+  min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;
+  text-align:left;line-height:1.65;
+}
+@media (max-width: 480px) {
+ html[data-ui-shell="immersive"] .write-panel {padding:12px;}
+ html[data-ui-shell="immersive"] .write-panel > .sub-panel {padding:12px;}
+ html[data-ui-shell="immersive"] .write-panel .trace-head {grid-template-columns:minmax(0,1fr) auto;}
+ html[data-ui-shell="immersive"] .write-panel .trace-target-meaning {font-size:13px;}
+ html[data-ui-shell="immersive"] .write-panel .trace-controls button {flex:1 1 44%;}
+}
