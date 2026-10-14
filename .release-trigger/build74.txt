@@ -1,0 +1,3 @@
+Kotoba 1.0.0 Build 74
+Release validation trigger: 2026-10-14
+Run the gated signed AAB workflow; no automatic Play publication.
