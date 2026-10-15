@@ -1,2 +1,3 @@
 Build 76 / version 1.0.0: full live layout, glass, font, map and signed release validation.
 Validate the extracted signed package with the same DOM test dependency paths.
+Read cache identity from compiled Python when validating source-free releases.
