@@ -186,3 +186,11 @@ html:root[data-ui-shell][data-glass="on"][data-glass-quality="lite"] body :is(.j
  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
  background-color: color-mix(in srgb,var(--card-bg) 90%,transparent) !important;
 }
+
+/* Expanded map is a full-screen layer: opaque, so the page behind it never
+   shows through the glass. */
+html[data-ui-shell="immersive"] body .japan-map-wrap.is-expanded,
+html[data-ui-shell="immersive"][data-glass="off"] body .japan-map-wrap.is-expanded {
+ background: linear-gradient(145deg,#a9cde0,#8fb9d1) !important;
+ -webkit-backdrop-filter:none; backdrop-filter:none;
+}

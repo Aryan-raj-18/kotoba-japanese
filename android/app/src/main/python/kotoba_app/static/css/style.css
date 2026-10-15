@@ -2789,3 +2789,12 @@ h2, h3 { line-height:1.35; }
   }
   .japan-hero .japan-hero-actions { gap: 9px; }
 }
+
+/* Speaking: result rows, spacing of the progress bar, multi-line feedback. */
+.speaking-stage .review-topline{padding:8px 16px;}
+.speaking-stage .review-topline #speaking-progress{flex:0 0 auto;white-space:nowrap;padding-inline:2px;font-variant-numeric:tabular-nums;}
+.speaking-stage .review-topline .exam-category-chip{min-width:0;max-width:100%;text-align:center;justify-content:center;}
+.speaking-result{white-space:pre-line;overflow-wrap:anywhere;line-height:1.55;}
+.speaking-selfcheck[hidden],.speaking-actions [hidden],.speaking-next[hidden]{display:none !important;}
+.speaking-selfcheck button{flex:1 1 140px;max-width:220px;}
+.speaking-next{display:block;margin:16px auto;min-width:180px;}

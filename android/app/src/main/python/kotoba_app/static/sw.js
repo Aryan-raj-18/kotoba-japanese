@@ -3,7 +3,7 @@
 // and use a network-first strategy everywhere else so content stays
 // fresh whenever a connection is available.
 
-const CACHE_NAME = "kotoba-shell-v100-build74";
+const CACHE_NAME = "kotoba-shell-v102-build75";
 const SHELL_ASSETS = [
   "/static/css/style.css",
   "/static/css/ui-shell.css",
