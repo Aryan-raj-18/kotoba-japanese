@@ -34,11 +34,11 @@ class GoldenThread(unittest.TestCase):
         self.assertEqual(s.count('webView.loadUrl(serverUrl + "__bootstrap?token=" + nativeSessionToken)'),1)
     def test_versions_and_mirrors(self):
         app=(ROOT/'app.py').read_text()
-        self.assertIn('ASSET_BUILD = "74"',app)
-        self.assertIn('versionCode 74',(ROOT/'android/app/build.gradle').read_text())
+        self.assertIn('ASSET_BUILD = "75"',app)
+        self.assertIn('versionCode 75',(ROOT/'android/app/build.gradle').read_text())
         sw=(ROOT/'static/sw.js').read_text()
-        self.assertIn('build74',sw)
-        self.assertIn('?v=74',sw)
+        self.assertIn('build75',sw)
+        self.assertIn('?v=75',sw)
         for rel in ('templates/base.html','static/css/ui-shell.css','static/sw.js','static/icons/kotoba-logo-circle.png'):
             self.assertEqual((ROOT/rel).read_bytes(),(APK/rel).read_bytes())
 
