@@ -48,8 +48,8 @@ class GlassPractice73(unittest.TestCase):
                          (android/'static/css/liquid-glass.css').read_bytes())
         self.assertEqual((ROOT/'static/sw.js').read_bytes(),
                          (android/'static/sw.js').read_bytes())
-        self.assertIn('ASSET_BUILD = "74"',(ROOT/'app.py').read_text())
-        self.assertIn('versionCode 74',(ROOT/'android/app/build.gradle').read_text())
-        self.assertIn('build74',(ROOT/'static/sw.js').read_text())
+        self.assertIn('ASSET_BUILD = "75"',(ROOT/'app.py').read_text())
+        self.assertIn('versionCode 75',(ROOT/'android/app/build.gradle').read_text())
+        self.assertIn('build75',(ROOT/'static/sw.js').read_text())
 
 if __name__=='__main__':unittest.main()
