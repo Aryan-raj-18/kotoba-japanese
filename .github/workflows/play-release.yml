@@ -57,6 +57,8 @@ jobs:
       - name: Build signed Play release and run lint
         working-directory: android
         env:
+          NODE_PATH: /tmp/kotoba-dom/node_modules
+          JSDOM_MODULE: /tmp/kotoba-dom/node_modules/jsdom
           KOTOBA_BUILD_PYTHON: python
           KOTOBA_UPLOAD_KEYSTORE_BASE64: ${{ secrets.KOTOBA_UPLOAD_KEYSTORE_BASE64 }}
           KOTOBA_UPLOAD_STORE_PASSWORD: ${{ secrets.KOTOBA_UPLOAD_STORE_PASSWORD }}
