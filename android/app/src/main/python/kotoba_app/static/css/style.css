@@ -1,3 +1,4 @@
+@font-face {font-family:"Kotoba CJK Fallback";src:url("../fonts/kotoba-cjk-fallback.woff2?v=76") format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+5151,U+520D,U+9FB9,U+FF3F;}
 @font-face {font-family:"Kotoba Serif";src:url("../fonts/kotoba-serif.woff2?v=30") format("woff2");font-weight:200 900;font-style:normal;font-display:swap;}
 @font-face {font-family:"Kotoba Brand";src:url("../fonts/kotoba-brand.woff2?v=30") format("woff2");font-display:swap;}
 @font-face { font-family:"Kotoba UI Rounded";src:url("../fonts/kotoba-ui-rounded.woff2?v=30") format("woff2");font-weight:200 900;font-style:normal;font-display:swap; }
@@ -38,8 +39,8 @@
   --trace-grid: #304B7030;
   --trace-ink: #304B70;
   --radius: 14px;
-  --serif-jp: "Kotoba Mincho", "Noto Serif JP", "Yu Mincho", serif;
-  --serif-body: "Kotoba Serif", "Source Serif 4", "Kotoba Mincho", Georgia, serif;
+  --serif-jp: "Kotoba Mincho", "Kotoba CJK Fallback", "Kotoba Rounded", "Noto Serif JP", "Yu Mincho", serif;
+  --serif-body: "Kotoba Serif", "Source Serif 4", "Kotoba Mincho", "Kotoba CJK Fallback", "Kotoba Rounded", Georgia, serif;
   --theme-title-animation: theme-rise;
   --theme-duration: 180ms;
   --theme-ease: ease-out;
@@ -2731,8 +2732,8 @@ h2, h3 { line-height:1.35; }
   --trace-grid: #E9C48530;
   --trace-ink: #E9C485;
   --radius: 14px;
-  --serif-jp: "Kotoba Mincho", "Noto Serif JP", "Yu Mincho", serif;
-  --serif-body: "Kotoba Serif", "Source Serif 4", "Kotoba Mincho", Georgia, serif;
+  --serif-jp: "Kotoba Mincho", "Kotoba CJK Fallback", "Kotoba Rounded", "Noto Serif JP", "Yu Mincho", serif;
+  --serif-body: "Kotoba Serif", "Source Serif 4", "Kotoba Mincho", "Kotoba CJK Fallback", "Kotoba Rounded", Georgia, serif;
   --theme-title-animation: theme-ink;
   --theme-duration: 180ms;
   --theme-ease: ease-out;

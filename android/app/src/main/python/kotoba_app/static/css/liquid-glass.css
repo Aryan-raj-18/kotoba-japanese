@@ -5,8 +5,8 @@
    Geometry is shared by ON/OFF; lists use inherited frost without per-tile
    GPU blur. Layout wrappers never become extra glass plates. */
 html[data-ui-shell="immersive"] {
- --liquid-panel: rgba(29,43,64,.45); --liquid-panel-strong: rgba(29,43,64,.34);
- --liquid-bar: rgba(29,43,64,.42);
+ --liquid-panel: var(--card-bg); --liquid-panel-strong: var(--card-bg);
+ --liquid-bar: var(--paper);
  --liquid-trim: var(--line);
  --liquid-shine: transparent;
  --liquid-reflection: linear-gradient(transparent,transparent);
@@ -17,7 +17,7 @@ html[data-ui-shell="immersive"] {
  --shell-surface-strong:var(--liquid-panel-strong);
  --shell-header-bg:var(--liquid-bar);
  --shell-input-bg:var(--liquid-panel-strong);
- --liquid-inset: #ffffff1a; --liquid-dialog: var(--card-bg);
+ --liquid-inset: var(--surface); --liquid-dialog: var(--card-bg);
 }
 html[data-ui-shell="immersive"][data-glass="on"] {
  --liquid-shine: #ffffff36;
@@ -1358,8 +1358,8 @@ html[data-ui-shell="immersive"] #exam-review .exam-review-card > :is(.exam-revie
 */
 @supports (background: color-mix(in srgb, white 50%, transparent)) {
   html[data-ui-shell="immersive"][data-glass="on"] {
-    --liquid-panel: color-mix(in srgb, var(--card-bg) 78%, transparent);
-    --liquid-panel-strong: color-mix(in srgb, var(--card-bg) 84%, transparent);
+    --liquid-panel: color-mix(in srgb, var(--card-bg) 86%, transparent);
+    --liquid-panel-strong: color-mix(in srgb, var(--card-bg) 90%, transparent);
     --liquid-inset: color-mix(in srgb, var(--card-bg) 88%, transparent);
     --liquid-dialog: color-mix(in srgb, var(--card-bg) 93%, transparent);
     --liquid-bar: color-mix(in srgb, var(--paper) 80%, transparent);
@@ -1504,4 +1504,49 @@ html[data-ui-shell="immersive"] .write-panel .write-output {
  html[data-ui-shell="immersive"] .write-panel .trace-head {grid-template-columns:minmax(0,1fr) auto;}
  html[data-ui-shell="immersive"] .write-panel .trace-target-meaning {font-size:13px;}
  html[data-ui-shell="immersive"] .write-panel .trace-controls button {flex:1 1 44%;}
+}
+
+/* Build 76: one finish owner for active screens, in both saved modes.
+   These beat earlier :has() wrapper resets without blurring every list row. */
+html:root[data-ui-shell="immersive"][data-glass] body :is(
+ .stage-panel,.exam-stage-panel,.rm-panel,.game-stage,.write-panel,
+ .japan-map-card,.japan-list-panel,.japan-toolbar,.settings-panel,
+ .grammar-detail-card,.story-body,.convo,.backup-card,.about-card,
+ .search-entry-panel,.search-prefix-results
+) {
+ background-color:var(--liquid-panel) !important;
+ background-image:var(--liquid-reflection) !important;
+ border:1px solid var(--liquid-trim);
+ -webkit-backdrop-filter:var(--liquid-blur) !important;
+ backdrop-filter:var(--liquid-blur) !important;
+ min-width:0;max-width:100%;
+}
+/* Large study glyphs and mixed Japanese/Latin answers use the bundled
+   fallback faces too. Text remains sharp; only the backdrop is blurred. */
+html[data-ui-shell="immersive"] :is(
+ .learn-kanji,.mcq-kanji,.explain-kanji,.quiz-sentence,.exam-question,
+ .exam-review-question,.flash-face,.review-front,.speaking-jp
+) {overflow-wrap:anywhere;word-break:normal;line-height:1.6;max-width:100%;}
+html[data-ui-shell="immersive"] :is(.learn-card,.quiz-card,.explain-card,.exam-review-card,.mcq-review-row) {
+ min-width:0;max-width:100%;height:auto;
+}
+html[data-ui-shell="immersive"] :is(.exam-progress-row,.mock-toolbar,.mock-nav,.review-actions) {flex-wrap:wrap;}
+html[data-ui-shell="immersive"] :is(.quiz-options,.mcq-options,.exam-options) {min-width:0;}
+html[data-ui-shell="immersive"] :is(.quiz-options,.mcq-options,.exam-options) > button {
+ min-width:0;white-space:normal;overflow-wrap:anywhere;height:auto;line-height:1.6;
+}
+
+/* Respect reduced transparency and the no-blur performance fallback even
+   after the shared finish tokens above are evaluated. */
+html:root[data-ui-shell="immersive"][data-glass="on"][data-glass-quality="lite"] {
+ --liquid-panel:var(--card-bg);--liquid-panel-strong:var(--card-bg);
+ --liquid-inset:var(--card-bg);--liquid-dialog:var(--card-bg);
+ --liquid-bar:var(--paper);--liquid-blur:none;
+}
+@media (prefers-reduced-transparency: reduce) {
+ html:root[data-ui-shell="immersive"][data-glass="on"] {
+  --liquid-panel:var(--card-bg);--liquid-panel-strong:var(--card-bg);
+  --liquid-inset:var(--card-bg);--liquid-dialog:var(--card-bg);
+  --liquid-bar:var(--paper);--liquid-blur:none;
+ }
 }

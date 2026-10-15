@@ -10,8 +10,8 @@ class PlayRelease74(unittest.TestCase):
     def test_release_identity_and_android_api(self):
         source=(R/'app.py').read_text()
         gradle=(R/'android/app/build.gradle').read_text()
-        self.assertIn('ASSET_BUILD = "75"',source)
-        for token in ('applicationId \'com.kotoba.app\'','versionCode 75',"versionName '1.0.0'",'targetSdk 36'):
+        self.assertIn('ASSET_BUILD = "76"',source)
+        for token in ('applicationId \'com.kotoba.app\'','versionCode 76',"versionName '1.0.0'",'targetSdk 36'):
             self.assertIn(token,gradle)
     def test_cache_and_mirror(self):
         for path in ('static/sw.js','static/css/liquid-glass.css','static/css/style.css',
@@ -19,15 +19,15 @@ class PlayRelease74(unittest.TestCase):
             self.assertEqual((R/path).read_bytes(),(A/path).read_bytes(),path)
         self.assertTrue((A/'app.py').read_bytes().startswith((R/'app.py').read_bytes().rstrip()))
         sw=(R/'static/sw.js').read_text()
-        self.assertIn('kotoba-shell-v100-build75',sw)
-        self.assertIn('?v=75',sw)
+        self.assertIn('kotoba-shell-v100-build76',sw)
+        self.assertIn('?v=76',sw)
     def test_signed_aab_workflow_and_verifier(self):
         flow=(R/'.github/workflows/play-release.yml').read_text()
         for token in ('workflow_dispatch','KOTOBA_UPLOAD_KEYSTORE_BASE64',
                       'KOTOBA_UPLOAD_KEY_ALIAS','KOTOBA_UPLOAD_KEY_PASSWORD',
                       ':app:testDebugUnitTest',':app:lintRelease',':app:bundleRelease',
                       'jarsigner -verify','verify_play_bundle.py',
-                      'kotoba-build75-signed-play-aab'):
+                      'kotoba-build76-signed-play-aab'):
             self.assertIn(token,flow)
         self.assertTrue((R/'verify_play_bundle.py').is_file())
     def test_only_minimum_permissions_and_no_embedded_signing(self):

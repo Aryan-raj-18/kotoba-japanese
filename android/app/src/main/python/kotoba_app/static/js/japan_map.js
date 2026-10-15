@@ -12,6 +12,9 @@
     const plus = document.getElementById('japan-zoom-in');
     const minus = document.getElementById('japan-zoom-out');
     const expand = document.getElementById('japan-map-expand');
+    const labels = document.getElementById('japan-map-labels');
+    let placeholder = null;
+    const inertBeforeExpand = new Map();
     const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
     const zoom = () => base.width / view.width;
 
@@ -158,17 +161,43 @@
     plus?.addEventListener('click', () => zoomBy(1.4));
     minus?.addEventListener('click', () => zoomBy(1 / 1.4));
     document.getElementById('japan-map-reset')?.addEventListener('click', () => commit(base));
+    // A fixed element inside backdrop-filter is constrained by that ancestor.
+    // Move the SAME map node to the page root, preserving its camera/listeners.
     function setExpanded(expanded) {
-      wrap?.classList.toggle('is-expanded', expanded);
+      if (!wrap || expanded === wrap.classList.contains('is-expanded')) return;
+      flushPending();
+      if (expanded) {
+        placeholder = document.createElement('div');
+        placeholder.className = 'japan-map-placeholder';
+        placeholder.style.height = `${wrap.getBoundingClientRect().height}px`;
+        placeholder.setAttribute('aria-hidden', 'true');
+        wrap.replaceWith(placeholder);
+        document.body.appendChild(wrap);
+        document.querySelectorAll('.site-main,.site-header,.kotoba-bottom-nav,.site-footer').forEach(el => {
+          inertBeforeExpand.set(el, el.inert);
+          el.inert = true;
+        });
+      } else {
+        placeholder?.replaceWith(wrap);
+        placeholder = null;
+        inertBeforeExpand.forEach((value, el) => { el.inert = value; });
+        inertBeforeExpand.clear();
+      }
+      wrap.classList.toggle('is-expanded', expanded);
       document.body.classList.toggle('japan-map-expanded', expanded);
       expand?.setAttribute('aria-pressed', String(expanded));
       expand?.setAttribute('aria-label', expanded ? 'Close expanded map' : 'Expand map');
       if (expand) expand.textContent = expanded ? '×' : '⛶';
-      // Expanded view behaves as a modal; keep keyboard focus in the map.
-      wrap?.setAttribute('role', expanded ? 'dialog' : 'group');
-      wrap?.setAttribute('aria-modal', expanded ? 'true' : 'false');
-      if (expanded) map.focus(); else expand?.focus();
+      wrap.setAttribute('role', expanded ? 'dialog' : 'group');
+      wrap.setAttribute('aria-modal', String(expanded));
+      (expanded ? map : expand)?.focus({ preventScroll: true });
+      options.onChange?.({ ...view, zoom: zoom() });
     }
+    labels?.addEventListener('click', () => {
+      const show = labels.getAttribute('aria-pressed') !== 'true';
+      labels.setAttribute('aria-pressed', String(show));
+      wrap?.classList.toggle('hide-place-names', !show);
+    });
     expand?.addEventListener('click', () => setExpanded(!wrap?.classList.contains('is-expanded')));
     document.addEventListener('keydown', event => {
       if (!wrap?.classList.contains('is-expanded')) return;

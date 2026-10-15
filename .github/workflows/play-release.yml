@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '.release-trigger/build75.txt'
+      - '.release-trigger/build76.txt'
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
       - name: Install verification dependencies
         run: |
           python -m pip install -r requirements.txt
-          python -m pip install 'playwright==1.57.0'
+          python -m pip install 'playwright==1.57.0' 'fonttools[woff]==4.67.0'
           python -m playwright install --with-deps chromium
           npm install --prefix /tmp/kotoba-dom --no-audit --no-fund --ignore-scripts jsdom@26.1.0
       - name: Synchronize Android source package
@@ -41,6 +41,7 @@ jobs:
           python -m unittest discover -q
           python smoke_test_android.py
           python test_release_layout.py
+          python test_build76_browser.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -86,27 +87,39 @@ jobs:
               'keyPassword='+escape(os.environ['KOTOBA_UPLOAD_KEY_PASSWORD']),
               '')))
           PY
-          gradle --no-daemon :app:testDebugUnitTest :app:lintRelease :app:bundleRelease --console=plain
+          gradle --no-daemon :app:testDebugUnitTest :app:lintRelease :app:bundleRelease :app:assembleRelease --console=plain
           test -s app/build/outputs/bundle/release/app-release.aab
           jarsigner -verify app/build/outputs/bundle/release/app-release.aab
           unzip -tq app/build/outputs/bundle/release/app-release.aab
+          curl --fail --location --retry 3 --output /tmp/kotoba-bundletool.jar https://github.com/google/bundletool/releases/download/1.18.2/bundletool-all-1.18.2.jar
           python ../verify_play_bundle.py app/build/outputs/bundle/release/app-release.aab
+          KOTOBA_BUNDLETOOL=/tmp/kotoba-bundletool.jar python ../verify_release_artifacts.py
+          KOTOBA_TEST_PACKAGE="$GITHUB_WORKSPACE/verification/actual-package" python ../run_release_checks.py
       - name: Upload signed release AAB
         uses: actions/upload-artifact@v4
         with:
-          name: kotoba-build75-signed-play-aab
+          name: kotoba-build76-signed-play-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotoba-build76-signed-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
       - name: Upload release verification reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kotoba-build75-release-checks
+          name: kotoba-build76-release-checks
           path: |
             verification/regression-results.json
             verification/play-aab-verification.json
             verification/*.log
             verification/browser-layout/**
+            verification/browser76.json
+            verification/artifact-verification.json
           if-no-files-found: ignore
           retention-days: 14

@@ -24,7 +24,7 @@ class GlassPractice73(unittest.TestCase):
         part=CSS[CSS.index('Build 73 — finish consistency'):]
         self.assertIn('[data-glass="on"]',part)
         self.assertIn('[data-glass="off"]',part)
-        self.assertIn('78%, transparent',part)
+        self.assertIn('86%, transparent',part)
         self.assertIn('23%, transparent',part)
         self.assertIn('backdrop-filter: var(--liquid-blur) !important;',part)
 
@@ -48,8 +48,8 @@ class GlassPractice73(unittest.TestCase):
                          (android/'static/css/liquid-glass.css').read_bytes())
         self.assertEqual((ROOT/'static/sw.js').read_bytes(),
                          (android/'static/sw.js').read_bytes())
-        self.assertIn('ASSET_BUILD = "75"',(ROOT/'app.py').read_text())
-        self.assertIn('versionCode 75',(ROOT/'android/app/build.gradle').read_text())
-        self.assertIn('build75',(ROOT/'static/sw.js').read_text())
+        self.assertIn('ASSET_BUILD = "76"',(ROOT/'app.py').read_text())
+        self.assertIn('versionCode 76',(ROOT/'android/app/build.gradle').read_text())
+        self.assertIn('build76',(ROOT/'static/sw.js').read_text())
 
 if __name__=='__main__':unittest.main()

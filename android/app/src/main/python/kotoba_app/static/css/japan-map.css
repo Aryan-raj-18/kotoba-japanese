@@ -194,3 +194,21 @@ html[data-ui-shell="immersive"][data-glass="off"] body .japan-map-wrap.is-expand
  background: linear-gradient(145deg,#a9cde0,#8fb9d1) !important;
  -webkit-backdrop-filter:none; backdrop-filter:none;
 }
+
+/* Build 76: fullscreen is a root-level camera, above the page's glass panes.
+   A label layer can be hidden while exploring; controls stay above the SVG. */
+html:root[data-ui-shell="immersive"] body .japan-map-wrap.is-expanded {
+ position:fixed !important;inset:0 !important;width:100%;height:100dvh;
+ max-width:none;max-height:none;margin:0;aspect-ratio:auto;z-index:660;
+ border:0;border-radius:0;
+ background-color:var(--liquid-panel) !important;
+ background-image:linear-gradient(145deg,var(--jp-sea),var(--jp-sea-2)) !important;
+ -webkit-backdrop-filter:var(--liquid-blur) !important;backdrop-filter:var(--liquid-blur) !important;
+}
+html[data-ui-shell="immersive"] body.japan-map-expanded :is(.site-header,.kotoba-bottom-nav) {visibility:hidden;pointer-events:none;}
+.japan-map-wrap.hide-place-names #japan-label-layer {display:none;}
+#japan-map-labels {font-family:var(--serif-jp);font-size:18px;}
+html[data-ui-shell="immersive"] .japan-map-wrap .jp-map-controls {z-index:4;}
+html[data-ui-shell="immersive"][data-glass="on"] .japan-map-wrap {
+ background-color:var(--liquid-panel) !important;
+}
