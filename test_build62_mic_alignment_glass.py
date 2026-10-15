@@ -25,7 +25,7 @@ class Build62(unittest.TestCase):
     def test_android_mirror(self):
         for f in ('templates/base.html','static/css/liquid-glass.css','static/js/voice-search.js','static/js/ui-shell.js','static/sw.js'):
             self.assertEqual((ROOT/f).read_bytes(), (ANDROID/f).read_bytes(), f)
-        self.assertEqual(re.search(r'ASSET_BUILD = "(\d+)"',(ROOT/'app.py').read_text()).group(1),'74')
-        self.assertIn('versionCode 74',(ROOT/'android/app/build.gradle').read_text())
-        self.assertIn('build74',(ROOT/'static/sw.js').read_text())
+        self.assertEqual(re.search(r'ASSET_BUILD = "(\d+)"',(ROOT/'app.py').read_text()).group(1),'75')
+        self.assertIn('versionCode 75',(ROOT/'android/app/build.gradle').read_text())
+        self.assertIn('build75',(ROOT/'static/sw.js').read_text())
 if __name__ == '__main__': unittest.main()
