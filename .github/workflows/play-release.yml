@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '.release-trigger/build74.txt'
+      - '.release-trigger/build75.txt'
 
 permissions:
   contents: read
