@@ -94,7 +94,7 @@ jobs:
       - name: Upload signed release AAB
         uses: actions/upload-artifact@v4
         with:
-          name: kotoba-build74-signed-play-aab
+          name: kotoba-build75-signed-play-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14
@@ -102,7 +102,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kotoba-build74-release-checks
+          name: kotoba-build75-release-checks
           path: |
             verification/regression-results.json
             verification/play-aab-verification.json
