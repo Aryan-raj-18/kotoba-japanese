@@ -41,7 +41,7 @@ jobs:
           python -m unittest discover -q
           python smoke_test_android.py
           python test_release_layout.py
-          python test_build77_browser.py
+          python test_build76_browser.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
