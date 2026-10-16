@@ -30,9 +30,9 @@ object KanjiNotifications {
     const val NOTICE_ID = 2002
     const val EXTRA_ID = "kotoba_kanji_id"
     const val EXTRA_LEVEL = "kotoba_kanji_level"
-    const val TICK = "com.kotoba.app.KANJI_TICK"
-    const val NEXT = "com.kotoba.app.KANJI_NEXT"
-    const val STOP = "com.kotoba.app.KANJI_STOP"
+    const val TICK = "com.kotoba_japanese.app.KANJI_TICK"
+    const val NEXT = "com.kotoba_japanese.app.KANJI_NEXT"
+    const val STOP = "com.kotoba_japanese.app.KANJI_STOP"
     private const val PREFS = "kotoba_kanji_notification"
     private var cachedCards: List<KanjiCard>? = null
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

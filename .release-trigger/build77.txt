@@ -1,0 +1,1 @@
+Build 77: signed version 1.0.0 matching existing Play listing com.kotoba_japanese.app. Verify merged manifest package, AndroidX Startup authority, launcher and receivers. Original Build 76 course content and interface retained.

@@ -1,7 +1,7 @@
 """Verify signed APK/AAB identity, alignment and the actual packaged Python/assets.
 Runs in CI with Python matching Chaquopy and Android SDK build-tools installed.
 """
-import hashlib,io,json,marshal,os,re,shutil,struct,subprocess,types,zipfile
+import hashlib,io,json,marshal,os,re,shutil,struct,subprocess,types,zipfile,xml.etree.ElementTree as ET
 from pathlib import Path
 from verify_play_bundle import load_alignments
 root=Path(__file__).resolve().parent;out=root/'verification';out.mkdir(exist_ok=True)
@@ -17,7 +17,9 @@ cert=re.search(r'certificate SHA-256 digest:\s*([a-fA-F0-9]+)',signature)[1].upp
 aab_cert=run('aab-certificate',['keytool','-printcert','-jarfile',aab]).replace(':','').upper();assert cert in aab_cert,'APK/AAB signing certificates differ'
 assert 'ANDROID DEBUG' not in aab_cert,'Release must not use Android debug key'
 badging=run('apk-version',[sdk/'aapt','dump','badging',apk]);assert f"versionCode='{version}'" in badging and f"versionName='{name}'" in badging
-assert "package: name='com.kotoba.app'" in badging
+application_id = 'com.kotoba_japanese.app'
+assert f"applicationId '{application_id}'" in gradle
+assert f"package: name='{application_id}'" in badging
 run('zip-alignment',[sdk/'zipalign','-c','-P','16','4',apk])
 assert 'jar verified' in run('aab-signature',['jarsigner','-verify',aab])
 bundletool=Path(os.environ['KOTOBA_BUNDLETOOL'])
@@ -25,7 +27,19 @@ run('bundle-validation',['java','-jar',bundletool,'validate','--bundle='+str(aab
 config=run('bundle-config',['java','-jar',bundletool,'dump','config','--bundle='+str(aab)]);assert 'PAGE_ALIGNMENT_16K' in config
 manifest=run('bundle-manifest',['java','-jar',bundletool,'dump','manifest','--bundle='+str(aab),'--module=base'])
 assert f'android:versionCode="{version}"' in manifest and f'android:versionName="{name}"' in manifest
-metadata={'version':name,'version_code':version,'certificate_sha256':cert,'artifacts':{}};payloads=[];dexes=[]
+ns = '{http://schemas.android.com/apk/res/android}'
+manifest_xml = ET.fromstring(manifest)
+assert manifest_xml.attrib['package'] == application_id
+application = manifest_xml.find('application')
+assert application is not None
+components = {e.attrib.get(ns+'name') for e in application if e.tag in ('activity', 'receiver')}
+for component in ('MainActivity','ReminderAlarmReceiver','KanjiNotificationReceiver','ReminderBootReceiver'):
+ assert 'com.kotoba.app.'+component in components, (component, components)
+authorities = [e.attrib[ns+'authorities'] for e in application.findall('provider')]
+assert application_id+'.androidx-startup' in authorities, authorities
+assert all(a.startswith(application_id+'.') for a in authorities), authorities
+assert 'com.kotoba.app.androidx-startup' not in authorities
+metadata={'application_id':application_id,'provider_authorities':authorities,'android_components':sorted(components),'version':name,'version_code':version,'certificate_sha256':cert,'artifacts':{}};payloads=[];dexes=[]
 for file,prefix in [(apk,''),(aab,'base/')]:
  info={'bytes':file.stat().st_size,'sha256':hashlib.sha256(file.read_bytes()).hexdigest()};libs=[]
  with zipfile.ZipFile(file) as z:
