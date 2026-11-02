@@ -59,7 +59,7 @@ def run(base):
         browser = pw.chromium.launch(**opts)
         ctx = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
         ctx.add_init_script("""localStorage.setItem('kotoba:onboarding:v3','1');
-          localStorage.setItem('kotoba:theme','kyoto-night');
+          if(!localStorage.getItem('kotoba:theme'))localStorage.setItem('kotoba:theme','kyoto-night');
           window.KotobaStartupNative={introElapsedMs:()=>3000};
           Object.defineProperty(navigator,'deviceMemory',{get:()=>2});""")
         if baseline:
@@ -156,6 +156,7 @@ def run(base):
                     p.reload()
                     p.add_style_tag(content='body {background:repeating-linear-gradient(45deg,#b86744 0 16px,#204f65 16px 32px,#e3b96a 32px 48px) !important}')
                     assert p.locator('html').get_attribute('data-glass') == mode
+                    assert p.locator('html').get_attribute('data-theme') == theme
                     p.locator('#settings-btn').click()
                 a, b = report['settings'][-2:]
                 if a['bg'] == b['bg']:

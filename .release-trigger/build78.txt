@@ -1,1 +1,2 @@
 Build 78: honour glass toggle in settings and on lower-memory phones; contain Roadmap practice and Learning Games text.
+Validate the chosen Light/Dark appearance across settings reloads.
