@@ -14,12 +14,18 @@
     (window.CSS.supports('backdrop-filter','blur(1px)') || window.CSS.supports('-webkit-backdrop-filter','blur(1px)')));
   var media=window.matchMedia;
   var reduceTransparency=!!(media && media('(prefers-reduced-transparency: reduce)').matches);
-  var qualityLite=!!((navigator.deviceMemory && navigator.deviceMemory<=3)||!supports||reduceTransparency);
+  // Low reported RAM is a hint to reduce the blur radius, not permission
+  // to silently turn off the user's chosen effect (Chromium rounds RAM).
+  var qualityLite=!!(!supports||reduceTransparency);
   if(qualityLite) root.setAttribute('data-glass-quality','lite');
+  else if(navigator.deviceMemory && navigator.deviceMemory<=3) root.setAttribute('data-glass-quality','compact');
   function enabled(){try{return localStorage.getItem(KEY)!=='off';}catch(_){return true;}}
   function apply(on){root.setAttribute('data-glass',on?'on':'off');
     if(toggle)toggle.setAttribute('aria-checked',String(!!on));
-    if(hint)hint.textContent=on?'On · Glass finish throughout the app':'Off · Clear glass — your background shows through';}
+    if(hint)hint.textContent=!on?'Off · Clear glass — your background shows through':
+      !supports?'On · Frosted finish — blur is unavailable in this WebView':
+      reduceTransparency?'On · Solid finish — device reduced transparency is enabled':
+      'On · Glass finish throughout the app';}
   apply(enabled());
   if(toggle)toggle.addEventListener('click',function(){
     var next=root.getAttribute('data-glass')!=='on';

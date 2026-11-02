@@ -3,7 +3,7 @@
 // and use a network-first strategy everywhere else so content stays
 // fresh whenever a connection is available.
 
-const CACHE_NAME = "kotoba-shell-v100-build77";
+const CACHE_NAME = "kotoba-shell-v100-build78";
 const SHELL_ASSETS = [
   "/static/css/style.css",
   "/static/css/ui-shell.css",
@@ -72,7 +72,7 @@ const SHELL_ASSETS = [
   "/static/manifest.json",
   "/static/icons/icon-192.png",
   "/static/icons/icon-512.png",
-].map(path => path + "?v=77");
+].map(path => path + "?v=78");
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

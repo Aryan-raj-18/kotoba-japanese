@@ -94,36 +94,36 @@
     var panel = document.getElementById('settings-panel');
     if (!btn || !panel) return;
 
-    // Below 560px the panel becomes a fixed bottom sheet (see style.css).
-    // But its normal home — inside .settings-wrap, inside the immersive
-    // shell's .site-header — sits under an ancestor with backdrop-filter,
-    // and a backdrop-filter/filter/transform on any ancestor makes that
-    // ancestor the containing block for position:fixed descendants
-    // instead of the viewport. On phones that pinned the "fixed" sheet
-    // to the small header bar rather than the screen, so only a sliver
-    // of it was ever visible. Moving the panel out to a direct child of
-    // <body> right before it opens keeps it a true viewport-fixed sheet
-    // on mobile, and moving it back restores the normal dropdown
-    // (position:absolute against .settings-wrap) on desktop.
-    var panelHome = panel.parentNode;
-    var panelHomeNext = panel.nextSibling;
+    // Keep the sheet outside the header's backdrop root at every size.
+    // Phones use the viewport bottom sheet; desktops anchor beside the button.
     var mqMobile = window.matchMedia('(max-width: 560px)');
 
     function placePanel() {
+      // A header backdrop is a backdrop root: a nested dropdown cannot
+      // sample the wallpaper. Portal on desktop as well as on phones.
+      if (panel.parentNode !== document.body) document.body.appendChild(panel);
       if (mqMobile.matches) {
-        if (panel.parentNode !== document.body) document.body.appendChild(panel);
-      } else if (panel.parentNode !== panelHome) {
-        panelHome.insertBefore(panel, panelHomeNext);
+        panel.style.removeProperty('top');
+        panel.style.removeProperty('right');
+        panel.style.removeProperty('max-height');
+      } else {
+        var rect = btn.getBoundingClientRect();
+        var top = Math.max(12, Math.min(rect.bottom + 12, window.innerHeight - 132));
+        panel.style.top = top + 'px';
+        panel.style.right = Math.max(12, window.innerWidth - rect.right) + 'px';
+        panel.style.maxHeight = Math.max(120, window.innerHeight - top - 12) + 'px';
       }
     }
 
     function close() {
       panel.hidden = true;
+      document.body.classList.remove('kotoba-settings-open');
       btn.setAttribute('aria-expanded', 'false');
     }
     function open() {
       placePanel();
       panel.hidden = false;
+      document.body.classList.add('kotoba-settings-open');
       btn.setAttribute('aria-expanded', 'true');
     }
 
@@ -133,6 +133,7 @@
     var onMqChange = function () { if (!panel.hidden) close(); };
     if (mqMobile.addEventListener) mqMobile.addEventListener('change', onMqChange);
     else if (mqMobile.addListener) mqMobile.addListener(onMqChange);
+    window.addEventListener('resize', function () { if (!panel.hidden) placePanel(); });
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();

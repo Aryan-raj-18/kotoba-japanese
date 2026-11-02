@@ -34,7 +34,7 @@ from flask import (
 
 app = Flask(__name__)
 app.json.ensure_ascii = False
-ASSET_BUILD = "77"
+ASSET_BUILD = "78"
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
 
 @app.url_defaults

@@ -23,9 +23,9 @@ class JapanExplorerHeroSpacingTest(unittest.TestCase):
         target = ROOT / 'android/app/src/main/python/kotoba_app'
         self.assertEqual((ROOT/'static/css/style.css').read_bytes(), (target/'static/css/style.css').read_bytes())
         self.assertEqual((ROOT/'static/sw.js').read_bytes(), (target/'static/sw.js').read_bytes())
-        self.assertIn('ASSET_BUILD = "77"', (ROOT/'app.py').read_text())
-        self.assertIn('ASSET_BUILD = "77"', (target/'app.py').read_text())
-        self.assertIn('versionCode 77', (ROOT/'android/app/build.gradle').read_text())
-        self.assertIn('build77', (ROOT/'static/sw.js').read_text())
+        self.assertIn('ASSET_BUILD = "78"', (ROOT/'app.py').read_text())
+        self.assertIn('ASSET_BUILD = "78"', (target/'app.py').read_text())
+        self.assertIn('versionCode 78', (ROOT/'android/app/build.gradle').read_text())
+        self.assertIn('build78', (ROOT/'static/sw.js').read_text())
 
 if __name__ == '__main__': unittest.main()

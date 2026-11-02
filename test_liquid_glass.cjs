@@ -26,11 +26,11 @@ for(const p of ['templates/base.html','static/css/liquid-glass.css','static/js/l
   const mirrored=fs.readFileSync(path.join(__dirname,'android/app/src/main/python/kotoba_app',p),'utf8');
   assert.equal(mirrored,fs.readFileSync(path.join(__dirname,p),'utf8'),p+' mirror drift');
 }
-function session(initial,memory) {
+function session(initial,memory,supports=false,reduced=false) {
   const saved=new Map(initial==='off'?[['kotoba:liquid-glass','off']]:[]),attributes=new Map();
   const on={};
   const toggle={setAttribute:(k,v)=>attributes.set(k,v),addEventListener:(e,cb)=>on[e]=cb};
-  const window={CSS:{supports:()=>false},matchMedia:()=>({matches:false})};
+  const window={CSS:{supports:()=>supports},matchMedia:()=>({matches:reduced})};
   const context={window,CSS:window.CSS,document:{documentElement:{setAttribute:(k,v)=>attributes.set('root-'+k,v),getAttribute:k=>attributes.get('root-'+k)||null},getElementById:id=>id==='liquid-glass-switch'?toggle:null},
     localStorage:{getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v)},
     navigator:{deviceMemory:memory},window:window};
@@ -46,4 +46,11 @@ s=session('off',2);
 assert.equal(s.attributes.get('root-data-glass'),'off');
 assert.equal(s.attributes.get('root-data-glass-quality'),'lite');
 assert.equal(s.attributes.get('aria-checked'),'false');
-console.log('PASS liquid glass defaults, switch persistence, reduced-memory mode, accessibility styles and native asset parity');
+s=session(null,2,true);
+assert.equal(s.attributes.get('root-data-glass-quality'),'compact','Low-memory supported phones retain blur');
+assert.equal(s.attributes.get('root-data-glass'),'on');
+s.click();assert.equal(s.attributes.get('root-data-glass'),'off');
+s.click();assert.equal(s.attributes.get('root-data-glass'),'on');
+s=session(null,8,true,true);
+assert.equal(s.attributes.get('root-data-glass-quality'),'lite','Respect device reduced transparency');
+console.log('PASS glass persistence, supported low-memory blur, unsupported/accessibility fallbacks and Android asset parity');

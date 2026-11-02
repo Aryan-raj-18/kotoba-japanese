@@ -1048,9 +1048,14 @@ html[data-ui-shell="immersive"] .settings-panel {overflow-x:hidden;overflow-y:au
 /* The generic glass-panel rule above sets max-width:100%, which for this absolutely positioned
    dropdown means 100% of the 40px settings-button wrapper (a thin vertical strip). Restore its
    real size on desktop; on phones it is a fixed bottom sheet and already sizes itself. */
-/* The dropdown lives inside the blurred header, so its own backdrop blur cannot reach the page
-   behind it and a see-through fill lets the page text bleed into the menu. Keep it opaque. */
-html[data-ui-shell="immersive"] #settings-panel.settings-panel {background-color:var(--card-bg) !important;background-image:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+/* theme.js portals the open settings sheet outside the blurred header.
+   Use the dialog tint for reading contrast and honour both glass modes. */
+html[data-ui-shell="immersive"] #settings-panel.settings-panel {
+ background-color:var(--liquid-dialog) !important;
+ background-image:var(--liquid-reflection) !important;
+ -webkit-backdrop-filter:var(--liquid-blur) !important;
+ backdrop-filter:var(--liquid-blur) !important;
+}
 @media (min-width:561px){
  html[data-ui-shell="immersive"] .settings-panel {width:min(320px,calc(100vw - 24px)) !important;max-width:calc(100vw - 24px) !important;min-width:min(260px,calc(100vw - 24px)) !important;}
 }
@@ -2310,10 +2315,71 @@ html[data-ui-shell="immersive"] :is(.quiz-options,.mcq-options,.exam-options) > 
 
 /* Respect reduced transparency and the no-blur performance fallback even
    after the shared finish tokens above are evaluated. */
+/* A small-radius blur keeps the effect enabled on lower-memory phones. */
+html:root[data-ui-shell="immersive"][data-glass="on"][data-glass-quality="compact"] {
+ --liquid-blur:blur(8px) saturate(125%);
+}
 html:root[data-ui-shell="immersive"][data-glass="on"][data-glass-quality="lite"] {
  --liquid-panel:var(--card-bg);--liquid-panel-strong:var(--card-bg);
  --liquid-inset:var(--card-bg);--liquid-dialog:var(--card-bg);
  --liquid-bar:var(--paper);--liquid-blur:none;
+}
+
+/* Build 78: inset content in the actual Roadmap and game surfaces.
+   Padding contains margin collapse and animated choices; do not hide text
+   with overflow:hidden or fixed heights when Android enlarges its fonts. */
+html[data-ui-shell="immersive"] .rm-panel {
+ padding:clamp(16px,4vw,24px);
+ width:min(520px,100%);
+}
+html[data-ui-shell="immersive"] .rm-panel :is(
+ .rm-card-count,.rm-q-type,.rm-q-prompt,.rm-q-sub,.rm-word-reading,
+ .rm-word-romaji,.rm-word-meaning,.rm-feedback,.rm-done-score,.rm-done-note
+) {min-width:0;max-width:100%;overflow-wrap:anywhere;line-height:1.6;}
+html[data-ui-shell="immersive"] .rm-quiz-topline {flex-wrap:wrap;gap:8px;}
+html[data-ui-shell="immersive"] .rm-quiz-topline .rm-card-count {margin:0 0 8px;}
+html[data-ui-shell="immersive"] .rm-options {grid-template-columns:minmax(0,1fr);}
+html[data-ui-shell="immersive"] .rm-option {
+ min-width:0;max-width:100%;height:auto;white-space:normal;
+ overflow-wrap:anywhere;word-break:normal;line-height:1.6;
+}
+/* Font layout must reserve space for Japanese ascenders/descenders too. */
+html[data-ui-shell="immersive"] :is(.rm-q-prompt,.rm-word-jp,.game-big) {
+ min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal;line-height:1.65;
+}
+html[data-ui-shell="immersive"] .game-picker .path-grid {
+ grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));
+}
+html[data-ui-shell="immersive"] .game-picker .game-pick {
+ min-width:0;height:auto;white-space:normal;overflow-wrap:anywhere;
+}
+html[data-ui-shell="immersive"] .game-picker .game-pick > * {min-width:0;max-width:100%;}
+html[data-ui-shell="immersive"] .game-picker .path-kanji {display:block;line-height:1.65;}
+html[data-ui-shell="immersive"] .game-picker :is(.level-options,#game-start) {margin-top:20px;}
+html[data-ui-shell="immersive"] #game-stage.game-stage {padding:clamp(16px,4vw,24px);}
+html[data-ui-shell="immersive"] .game-top {display:flex;flex-wrap:wrap;gap:8px 16px;margin-bottom:16px;}
+html[data-ui-shell="immersive"] :is(.game-top > *,#game-board,.match-col) {min-width:0;overflow-wrap:anywhere;}
+html[data-ui-shell="immersive"] .match-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+html[data-ui-shell="immersive"] .match-tile {
+ min-width:0;max-width:100%;white-space:normal;height:auto;overflow-wrap:anywhere;line-height:1.6;
+}
+html[data-ui-shell="immersive"] .game-big {margin:12px 0;}
+/* The stage owns blur; nested questions inherit its frost without a second
+   expensive backdrop root on every game transition. */
+html[data-ui-shell="immersive"] #game-board > :is(.game-question,.game-finish) {
+ -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+}
+@media (min-width:561px) {
+ html[data-ui-shell="immersive"] #settings-panel.settings-panel {position:fixed;}
+}
+@media (max-width:560px) {
+ html[data-ui-shell="immersive"] .game-picker .path-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ /* A phone sheet covers most of the page. Preserve its layout/scroll
+    position but keep page lettering from showing through clear settings. */
+ html[data-ui-shell="immersive"] body.kotoba-settings-open :is(.site-main,.site-footer,.kotoba-bottom-nav) {visibility:hidden;}
+}
+@media (max-width:359px) {
+ html[data-ui-shell="immersive"] .game-picker .path-grid {grid-template-columns:minmax(0,1fr);}
 }
 @media (prefers-reduced-transparency: reduce) {
  html:root[data-ui-shell="immersive"][data-glass="on"] {
